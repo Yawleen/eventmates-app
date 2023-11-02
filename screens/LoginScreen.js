@@ -2,7 +2,7 @@ import { requestOptions } from "../helpers/requestOptions";
 import { save } from "../helpers/secureStore";
 import { autoLogOut } from "../helpers/autoLogOut";
 import { useState } from "react";
-import { AUTH_TOKEN } from "../globals";
+import { AUTH_TOKEN, SCREEN_RESET_PASSWORD } from "../globals";
 import { useAppContext } from "../context/appContext";
 import Colors from "../globals/colors";
 import validator from "validator";
@@ -15,17 +15,21 @@ import {
   ImageBackground,
   ActivityIndicator,
   Alert,
+  Switch,
   KeyboardAvoidingView,
 } from "react-native";
 import Button from "../components/Button";
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const { setIsSignedIn } = useAppContext();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [isEnabled, setIsEnabled] = useState(false);
+
+  const toggleSwitch = () => setIsEnabled(!isEnabled);
 
   const logUser = async (userData) => {
     setIsLoading(true);
@@ -50,9 +54,14 @@ export default function LoginScreen() {
         });
       });
     } catch (error) {
-      console.error(error);
+      Alert.alert("Erreur", error.message);
       setIsLoading(false);
     }
+  };
+
+  const resetPasswordHandler = () => {
+    navigation.navigate(SCREEN_RESET_PASSWORD);
+    setFormData({ email: "", password: "" });
   };
 
   const handleInputChange = (field, value) =>
@@ -69,7 +78,12 @@ export default function LoginScreen() {
       return;
     }
 
-    logUser(formData);
+    const userData = {
+      email: formData.email.toLowerCase().trim(),
+      password: formData.password,
+    };
+
+    logUser(userData);
   };
 
   return (
@@ -110,10 +124,30 @@ export default function LoginScreen() {
                   value={formData.password}
                   returnKeyType="go"
                   onSubmitEditing={handleLogin}
-                  secureTextEntry
+                  {...(!isEnabled && { secureTextEntry: true })}
                 />
               </View>
-              <View style={styles.buttonContainer}>
+              <View style={styles.toggleButtonContainer}>
+                <Switch
+                  trackColor={{ false: "#D4D4D4", true: "#B46AFF7A" }}
+                  thumbColor={isEnabled ? Colors.primary700 : Colors.primary600}
+                  ios_backgroundColor={"#D4D4D4"}
+                  onValueChange={toggleSwitch}
+                  value={isEnabled}
+                />
+                <Text style={styles.showPasswordText}>
+                  Afficher le mot de passe
+                </Text>
+              </View>
+              <View style={styles.resetButtonContainer}>
+                <Button
+                  text="Réinitialiser le mot de passe"
+                  textColor={Colors.textColor}
+                  backgroundColor="transparent"
+                  onPress={resetPasswordHandler}
+                />
+              </View>
+              <View style={styles.loginButtonContainer}>
                 <Button text="Se connecter" onPress={handleLogin} />
               </View>
             </>
@@ -168,7 +202,19 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     overflow: "hidden",
   },
-  buttonContainer: {
+  toggleButtonContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 4,
+    marginBottom: 15,
+  },
+  showPasswordText: {
+    fontSize: 16,
+  },
+  resetButtonContainer: {
+    marginBottom: 20,
+  },
+  loginButtonContainer: {
     width: "90%",
   },
 });

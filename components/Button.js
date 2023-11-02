@@ -2,7 +2,13 @@ import Colors from "../globals/colors";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 
-export default function Button({ text, height, onPress }) {
+export default function Button({
+  text,
+  height,
+  backgroundColor,
+  textColor,
+  onPress,
+}) {
   return (
     <View style={styles.container}>
       <Pressable
@@ -13,12 +19,22 @@ export default function Button({ text, height, onPress }) {
         android_ripple={{ color: Colors.primary600 }}
         onPress={onPress}
       >
-        <LinearGradient
-          colors={[Colors.primary600, Colors.primary900]}
-          style={styles.gradient}
-        >
-          <Text style={styles.text}>{text}</Text>
-        </LinearGradient>
+        {backgroundColor || textColor ? (
+          <View
+            style={{
+              backgroundColor
+            }}
+          >
+            <Text style={[styles.text, { color: textColor }]}>{text}</Text>
+          </View>
+        ) : (
+          <LinearGradient
+            colors={[Colors.primary600, Colors.primary900]}
+            style={styles.gradient}
+          >
+            <Text style={styles.text}>{text}</Text>
+          </LinearGradient>
+        )}
       </Pressable>
     </View>
   );
