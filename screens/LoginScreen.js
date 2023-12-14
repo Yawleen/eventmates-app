@@ -2,7 +2,7 @@ import { requestOptions } from "../helpers/requestOptions";
 import { save } from "../helpers/secureStore";
 import { autoLogOut } from "../helpers/autoLogOut";
 import { useState } from "react";
-import { AUTH_TOKEN, IOS } from "../globals";
+import { AUTH_TOKEN, SCREEN_RESET_PASSWORD, IOS } from "../globals";
 import { useAppContext } from "../context/appContext";
 import Colors from "../globals/colors";
 import validator from "validator";
@@ -21,7 +21,7 @@ import {
 import Button from "../components/Button";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-export default function LoginScreen() {
+export default function LoginScreen({ navigation }) {
   const { setIsSignedIn } = useAppContext();
   const [formData, setFormData] = useState({
     email: "",
@@ -55,9 +55,14 @@ export default function LoginScreen() {
         });
       });
     } catch (error) {
-      console.error(error);
+      Alert.alert("Erreur", error.message);
       setIsLoading(false);
     }
+  };
+
+  const resetPasswordHandler = () => {
+    navigation.navigate(SCREEN_RESET_PASSWORD);
+    setFormData({ email: "", password: "" });
   };
 
   const handleInputChange = (field, value) =>
@@ -74,7 +79,12 @@ export default function LoginScreen() {
       return;
     }
 
-    logUser(formData);
+    const userData = {
+      email: formData.email.toLowerCase().trim(),
+      password: formData.password,
+    };
+
+    logUser(userData);
   };
 
   return (
@@ -131,7 +141,15 @@ export default function LoginScreen() {
                   />
                 </View>
               </View>
-              <View style={styles.buttonContainer}>
+              <View style={styles.resetButtonContainer}>
+                <Button
+                  text="Réinitialiser le mot de passe"
+                  textColor={Colors.textColor}
+                  backgroundColor="transparent"
+                  onPress={resetPasswordHandler}
+                />
+              </View>
+              <View style={styles.loginButtonContainer}>
                 <Button text="Se connecter" onPress={handleLogin} />
               </View>
             </>
@@ -207,7 +225,10 @@ const styles = StyleSheet.create({
   icon: {
     flexShrink: 0,
   },
-  buttonContainer: {
+  resetButtonContainer: {
+    marginBottom: 20,
+  },
+  loginButtonContainer: {
     width: "90%",
   },
 });

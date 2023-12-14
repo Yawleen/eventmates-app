@@ -23,7 +23,6 @@ import { useAppContext } from "../context/appContext";
 import Button from "../components/Button";
 import RadioButtons from "../components/RadioButtons";
 import DateTimePicker from "@react-native-community/datetimepicker";
-import { KeyboardAvoidingView } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function RegistrationScreen() {
@@ -38,7 +37,11 @@ export default function RegistrationScreen() {
     birthdate: "",
     gender: "",
   });
-  const [date, setDate] = useState(new Date());
+  const [date, setDate] = useState(
+    new Date(
+      `${moment().year() - 18}-${moment().month() + 1}-${moment().date()}`
+    )
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -176,209 +179,206 @@ export default function RegistrationScreen() {
   };
 
   return (
-    <ScrollView style={styles.imageBackgroundContainer}>
-      <ImageBackground
-        source={require("../assets/img/profitez.jpg")}
-        resizeMode="cover"
-        style={styles.imageBackground}
-      >
-        <KeyboardAvoidingView style={styles.container}>
-          <View style={styles.scrollViewContainer}>
-            <View style={styles.logoContainer}>
-              <Image
-                style={styles.logo}
-                source={require("../assets/img/eventmates_logo_transparent_slogan.png")}
-              />
-            </View>
-            {isLoading ? (
-              <ActivityIndicator
-                style={styles.loader}
-                size="large"
-                color={Colors.primary900}
-              />
-            ) : (
-              <View style={styles.scrollView}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Genre</Text>
-                  <RadioButtons
-                    data={genders}
-                    onSelect={(value) => handleInputChange("gender", value)}
-                  />
-                </View>
+    <ImageBackground
+      source={require("../assets/img/profitez.jpg")}
+      resizeMode="cover"
+      style={styles.imageBackground}
+    >
+      <ScrollView style={styles.scrollContainer}>
+        <View style={styles.container}>
+          <View style={styles.logoContainer}>
+            <Image
+              style={styles.logo}
+              source={require("../assets/img/eventmates_logo_transparent_slogan.png")}
+            />
+          </View>
+          {isLoading ? (
+            <ActivityIndicator
+              style={styles.loader}
+              size="large"
+              color={Colors.primary900}
+            />
+          ) : (
+            <View style={styles.scrollView}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Genre</Text>
+                <RadioButtons
+                  data={genders}
+                  onSelect={(value) => handleInputChange("gender", value)}
+                />
+              </View>
 
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Nom d'utilisateur</Text>
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nom d'utilisateur</Text>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={(value) => handleInputChange("username", value)}
+                  value={formData.username}
+                  placeholder="JohnDoe92"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Prénom</Text>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={(value) =>
+                    handleInputChange("firstName", value)
+                  }
+                  value={formData.firstName}
+                  placeholder="John"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Nom de famille</Text>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={(value) => handleInputChange("lastName", value)}
+                  value={formData.lastName}
+                  placeholder="Doe"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Email</Text>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={(value) => handleInputChange("email", value)}
+                  value={formData.email}
+                  placeholder="johndoe@gmail.com"
+                  keyboardType="email-address"
+                />
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Mot de passe</Text>
+                <View style={styles.passwordInputContainer}>
                   <TextInput
-                    style={styles.input}
+                    style={styles.passwordInput}
+                    placeholder="8 caractères min."
                     onChangeText={(value) =>
-                      handleInputChange("username", value)
+                      handleInputChange("password", value)
                     }
-                    value={formData.username}
-                    placeholder="JohnDoe92"
+                    value={formData.password}
+                    secureTextEntry={!showPassword}
                   />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Prénom</Text>
-                  <TextInput
-                    style={styles.input}
-                    onChangeText={(value) =>
-                      handleInputChange("firstName", value)
-                    }
-                    value={formData.firstName}
-                    placeholder="John"
+                  <MaterialCommunityIcons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color="#aaa"
+                    style={styles.icon}
+                    onPress={toggleShowPassword}
                   />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Nom de famille</Text>
-                  <TextInput
-                    style={styles.input}
-                    onChangeText={(value) =>
-                      handleInputChange("lastName", value)
-                    }
-                    value={formData.lastName}
-                    placeholder="Doe"
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Email</Text>
-                  <TextInput
-                    style={styles.input}
-                    onChangeText={(value) => handleInputChange("email", value)}
-                    value={formData.email}
-                    placeholder="johndoe@gmail.com"
-                    keyboardType="email-address"
-                  />
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Mot de passe</Text>
-                  <View style={styles.passwordInputContainer}>
-                    <TextInput
-                      style={styles.passwordInput}
-                      placeholder="8 caractères min."
-                      onChangeText={(value) =>
-                        handleInputChange("password", value)
-                      }
-                      value={formData.password}
-                      secureTextEntry={!showPassword}
-                    />
-                    <MaterialCommunityIcons
-                      name={showPassword ? "eye-off" : "eye"}
-                      size={24}
-                      color="#aaa"
-                      style={styles.icon}
-                      onPress={toggleShowPassword}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Confirmation du mot de passe</Text>
-                  <View style={styles.passwordInputContainer}>
-                    <TextInput
-                      style={styles.passwordInput}
-                      placeholder="**********"
-                      onChangeText={(value) =>
-                        handleInputChange("confirmPassword", value)
-                      }
-                      value={formData.confirmPassword}
-                      secureTextEntry={!showPassword}
-                    />
-                    <MaterialCommunityIcons
-                      name={showPassword ? "eye-off" : "eye"}
-                      size={24}
-                      color="#aaa"
-                      style={styles.icon}
-                      onPress={toggleShowPassword}
-                    />
-                  </View>
-                </View>
-
-                <View style={styles.inputContainer}>
-                  <Text style={styles.label}>Date de naissance</Text>
-
-                  {showDatePicker && (
-                    <DateTimePicker
-                      mode="date"
-                      display="spinner"
-                      value={date}
-                      onChange={onChange}
-                      style={styles.datePicker}
-                      maximumDate={
-                        new Date(
-                          `${moment().year() - 18}-${
-                            moment().month() + 1
-                          }-${moment().date()}`
-                        )
-                      }
-                    />
-                  )}
-
-                  {showDatePicker && Platform.OS === IOS && (
-                    <View style={styles.datePickerButtons}>
-                      <Button
-                        text="Annuler"
-                        onPress={toggleDatePicker}
-                        height={40}
-                      />
-                      <Button
-                        text="Confirmer"
-                        onPress={confirmIOSDate}
-                        height={40}
-                      />
-                    </View>
-                  )}
-
-                  {!showDatePicker && (
-                    <Pressable onPress={toggleDatePicker}>
-                      <TextInput
-                        style={styles.input}
-                        {...(formData.birthdate !== "" && {
-                          value: formatDate(moment(formData.birthdate).unix()),
-                        })}
-                        placeholder="13/06/1998"
-                        onPressIn={toggleDatePicker}
-                        editable={false}
-                      />
-                    </Pressable>
-                  )}
-                </View>
-                <View style={styles.buttonContainer}>
-                  <Button text="S'inscrire" onPress={handleSubmit} />
                 </View>
               </View>
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </ImageBackground>
-    </ScrollView>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Confirmation du mot de passe</Text>
+                <View style={styles.passwordInputContainer}>
+                  <TextInput
+                    style={styles.passwordInput}
+                    placeholder="**********"
+                    onChangeText={(value) =>
+                      handleInputChange("confirmPassword", value)
+                    }
+                    value={formData.confirmPassword}
+                    secureTextEntry={!showPassword}
+                  />
+                  <MaterialCommunityIcons
+                    name={showPassword ? "eye-off" : "eye"}
+                    size={24}
+                    color="#aaa"
+                    style={styles.icon}
+                    onPress={toggleShowPassword}
+                  />
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.label}>Date de naissance</Text>
+
+                {showDatePicker && (
+                  <DateTimePicker
+                    mode="date"
+                    display="spinner"
+                    value={date}
+                    onChange={onChange}
+                    style={styles.datePicker}
+                    maximumDate={
+                      new Date(
+                        `${moment().year() - 18}-${
+                          moment().month() + 1
+                        }-${moment().date()}`
+                      )
+                    }
+                  />
+                )}
+
+                {showDatePicker && Platform.OS === IOS && (
+                  <View style={styles.datePickerButtons}>
+                    <Button
+                      text="Annuler"
+                      onPress={toggleDatePicker}
+                      height={40}
+                    />
+                    <Button
+                      text="Confirmer"
+                      onPress={confirmIOSDate}
+                      height={40}
+                    />
+                  </View>
+                )}
+
+                {!showDatePicker && (
+                  <Pressable onPress={toggleDatePicker}>
+                    <TextInput
+                      style={styles.input}
+                      {...(formData.birthdate !== "" && {
+                        value: formatDate(moment(formData.birthdate).unix()),
+                      })}
+                      placeholder="13/06/1998"
+                      onPressIn={toggleDatePicker}
+                      editable={false}
+                    />
+                  </Pressable>
+                )}
+              </View>
+              <View style={styles.buttonContainer}>
+                <Button text="S'inscrire" onPress={handleSubmit} />
+              </View>
+            </View>
+          )}
+        </View>
+      </ScrollView>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  imageBackgroundContainer: {
-    flex: 1,
-  },
   imageBackground: {
+    flex: 1,
     paddingVertical: 70,
-  },
-  container: {
+    alignItems: "center",
     justifyContent: "center",
   },
-  loader: {
-    marginBottom: 60,
-  },
-  scrollViewContainer: {
+  scrollContainer: {
     width: "88%",
+    borderRadius: 15,
+    overflow: "hidden",
+  },
+  container: {
+    width: "100%",
     alignSelf: "center",
     alignItems: "center",
     backgroundColor: "#fff",
     borderRadius: 15,
     paddingHorizontal: 10,
     paddingVertical: 50,
+    marginVertical: "auto",
+  },
+  loader: {
+    marginBottom: 60,
   },
   scrollView: {
     width: "88%",
@@ -429,10 +429,10 @@ const styles = StyleSheet.create({
   },
   passwordInput: {
     flexGrow: 1,
-    flexShrink: 1
+    flexShrink: 1,
   },
   icon: {
-    flexShrink: 0
+    flexShrink: 0,
   },
   datePicker: {
     height: 120,

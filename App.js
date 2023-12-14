@@ -9,6 +9,7 @@ import {
   SCREEN_LOG_IN,
   SCREEN_HOME,
   AUTH_TOKEN,
+  SCREEN_RESET_PASSWORD,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -20,6 +21,7 @@ import RegistrationScreen from "./screens/RegistrationScreen";
 import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
 import LogOutButton from "./components/IconButton";
+import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 
 const Stack = createStackNavigator();
 
@@ -97,10 +99,13 @@ export default function App() {
                     name={SCREEN_LOG_IN}
                     component={LoginScreen}
                   ></Stack.Screen>
-
                   <Stack.Screen
                     name={SCREEN_REGISTRATION}
                     component={RegistrationScreen}
+                  ></Stack.Screen>
+                  <Stack.Screen
+                    name={SCREEN_RESET_PASSWORD}
+                    component={ResetPasswordScreen}
                   ></Stack.Screen>
                 </>
               ) : (
