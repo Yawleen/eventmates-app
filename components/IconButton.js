@@ -1,10 +1,10 @@
 import { Pressable } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 export default function IconButton({ style, icon, size, color, onPress }) {
   return (
-    <Pressable style={style} onPress={onPress}>
-      <Feather name={icon} size={size} color={color} />
+    <Pressable style={style} {...(onPress && { onPress: onPress })}>
+      <MaterialCommunityIcons name={icon} size={size} color={color} />
     </Pressable>
   );
 }
