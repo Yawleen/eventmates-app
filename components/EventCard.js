@@ -24,7 +24,7 @@ function EventCard({ eventInfo }) {
         </Text>
       </View>
       <View style={styles.imageContainer}>
-        <Image source={{ uri: eventInfo.media[0].url }} style={styles.image} />
+        <Image source={{ uri: eventInfo.media.url }} style={styles.image} />
       </View>
       <View style={styles.tagContainer}>
         <CategoryTag
