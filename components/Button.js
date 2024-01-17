@@ -7,6 +7,7 @@ export default function Button({
   height,
   backgroundColor,
   textColor,
+  isBold,
   onPress,
 }) {
   return (
@@ -25,14 +26,14 @@ export default function Button({
               backgroundColor
             }}
           >
-            <Text style={[styles.text, { color: textColor }]}>{text}</Text>
+            <Text style={[styles.text, { color: textColor, fontFamily: isBold ? "openSansBold" : "openSansRegular"}]}>{text}</Text>
           </View>
         ) : (
           <LinearGradient
             colors={[Colors.primary600, Colors.primary900]}
             style={styles.gradient}
           >
-            <Text style={styles.text}>{text}</Text>
+            <Text style={[styles.text, { fontFamily: isBold ? "openSansBold" : "openSansRegular"}]}>{text}</Text>
           </LinearGradient>
         )}
       </Pressable>
@@ -59,6 +60,5 @@ const styles = StyleSheet.create({
     fontSize: 15,
     textAlign: "center",
     color: "white",
-    fontFamily: "openSansRegular",
   },
 });
