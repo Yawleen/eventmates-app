@@ -10,6 +10,7 @@ import {
   SCREEN_HOME,
   AUTH_TOKEN,
   SCREEN_RESET_PASSWORD,
+  SCREEN_EVENTS,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -22,6 +23,7 @@ import LoginScreen from "./screens/LoginScreen";
 import HomeScreen from "./screens/HomeScreen";
 import LogOutButton from "./components/IconButton";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
+import EventsScreen from "./screens/EventsScreen";
 
 const Stack = createStackNavigator();
 
@@ -109,21 +111,38 @@ export default function App() {
                   ></Stack.Screen>
                 </>
               ) : (
-                <Stack.Screen
-                  name={SCREEN_HOME}
-                  component={HomeScreen}
-                  options={{
-                    headerRight: () => (
-                      <LogOutButton
-                        icon="log-out"
-                        size={22}
-                        style={styles.logOutButton}
-                        color="black"
-                        onPress={() => setIsSignedIn(false)}
-                      />
-                    ),
-                  }}
-                ></Stack.Screen>
+                <>
+                  <Stack.Screen
+                    name={SCREEN_EVENTS}
+                    component={EventsScreen}
+                    options={{
+                      headerRight: () => (
+                        <LogOutButton
+                          icon="logout"
+                          size={22}
+                          style={styles.logOutButton}
+                          color="#111"
+                          onPress={() => setIsSignedIn(false)}
+                        />
+                      ),
+                    }}
+                  ></Stack.Screen>
+                  <Stack.Screen
+                    name={SCREEN_HOME}
+                    component={HomeScreen}
+                    options={{
+                      headerRight: () => (
+                        <LogOutButton
+                          icon="logout"
+                          size={22}
+                          style={styles.logOutButton}
+                          color="#111"
+                          onPress={() => setIsSignedIn(false)}
+                        />
+                      ),
+                    }}
+                  ></Stack.Screen>
+                </>
               )}
             </Stack.Navigator>
           </NavigationContainer>
