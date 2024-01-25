@@ -52,7 +52,7 @@ export default function EventScreen({ route }) {
         </View>
         <View style={styles.infoContainer}>
           <Text style={styles.name}>
-            {eventInfo.name.replaceAll(/\s{2,}/g, " ")}
+            {eventInfo.name}
           </Text>
           <View style={styles.tagContainer}>
             <CategoryTag
