@@ -1,14 +1,20 @@
 import moment from "moment";
 import "moment/locale/fr";
 import { memo } from "react";
+import { SCREEN_EVENT } from "../globals";
+import { useNavigation } from '@react-navigation/native';
 import { StyleSheet, Text, View, Image, Pressable } from "react-native";
-import Icon from "../components/IconButton";
+import IconButton from "../components/IconButton";
 import Button from "./Button";
 import CategoryTag from "./CategoryTag";
 
 function EventCard({ eventInfo }) {
+  const navigation = useNavigation();
+
   const formatPrice = (price) =>
     price.toString().includes(".") ? price.toFixed(2) : price;
+
+  const onPressFunction = (eventData) => navigation.navigate(SCREEN_EVENT, { data: eventData });
 
   return (
     <View style={styles.card}>
@@ -32,39 +38,43 @@ function EventCard({ eventInfo }) {
           color={eventInfo.genre.color}
         />
       </View>
-      <View style={styles.favIconContainer}>
-        <Text style={styles.name}>{eventInfo.name}</Text>
-        <Pressable
-          onPress={() => console.log("ajout aux favoris")}
-          style={styles.favIcon}
-        >
-          <Icon icon="heart-outline" size={26} color="#111" />
-        </Pressable>
-      </View>
-      <View style={styles.addressContainer}>
-        <Icon icon="map-marker-outline" size={20} color="#111" />
-        <Text style={styles.address}>
-          {eventInfo.address.replace(", ", "\n")}
-        </Text>
-      </View>
-      <View style={styles.addressContainer}>
-        <Icon icon="clock-outline" size={19} color="#111" />
-        <Text style={styles.address}>
-          {eventInfo.dates.start.localTime.substring(0, 5)}
-        </Text>
-      </View>
-      <View style={styles.addressContainer}>
-        <Icon icon="wallet" size={19} color="#111" />
-        <Text style={styles.price}>
-          {eventInfo.priceRanges[0].min === eventInfo.priceRanges[0].max
-            ? `${formatPrice(eventInfo.priceRanges[0].max)}€`
-            : `De ${formatPrice(eventInfo.priceRanges[0].min)}€ à ${formatPrice(
-                eventInfo.priceRanges[0].max
-              )}€`}
-        </Text>
-      </View>
-      <View style={styles.buttonContainer}>
-        <Button text="Voir plus" onPress={() => console.log("cc")} />
+      <View style={styles.eventInfo}>
+        <View style={styles.favIconContainer}>
+          <Text style={styles.name}>{eventInfo.name.replaceAll(/\s{2,}/g, " ")}</Text>
+          <Pressable
+            onPress={() => console.log("ajout aux favoris")}
+            style={styles.favIcon}
+          >
+            <IconButton icon="heart-outline" size={26} color="#111" />
+          </Pressable>
+        </View>
+        <View style={styles.addressContainer}>
+          <View style={styles.infoContainer}>
+            <IconButton icon="map-marker-outline" size={20} color="#111" />
+            <Text style={styles.address} ellipsizeMode='tail' numberOfLines={1}>
+              {eventInfo.address.split(",")[0]}
+            </Text>
+          </View>
+          <View style={[styles.infoContainer, styles.timeInfo]}>
+            <IconButton icon="clock-outline" size={19} color="#111" />
+            <Text style={styles.address}>
+              {eventInfo.dates.start.localTime.substring(0, 5)}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.infoContainer}>
+          <IconButton icon="ticket-confirmation-outline" size={19} color="#111" />
+          <Text style={styles.price}>
+            {eventInfo.priceRanges[0].min === eventInfo.priceRanges[0].max
+              ? `${formatPrice(eventInfo.priceRanges[0].max)}€`
+              : `De ${formatPrice(eventInfo.priceRanges[0].min)}€ à ${formatPrice(
+                  eventInfo.priceRanges[0].max
+                )}€`}
+          </Text>
+        </View>
+        <View style={styles.buttonContainer}>
+          <Button text="Voir plus" onPress={() => onPressFunction(eventInfo)} />
+        </View>
       </View>
     </View>
   );
@@ -108,23 +118,28 @@ const styles = StyleSheet.create({
   dateText: {
     flex: 1,
     textAlign: "center",
-    fontFamily: "montserratBold",
+    fontFamily: "openSansBold",
   },
   day: {
     fontSize: 15,
   },
   month: {
     fontSize: 13,
-    fontFamily: "montserratRegular",
+    fontFamily: "openSansRegular",
   },
   year: {
     fontSize: 15,
+  },
+  eventInfo: {
+    paddingTop: 5,
+    paddingHorizontal: 10,
+    paddingBottom: 5
   },
   favIconContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginVertical: 6,
+    marginBottom: 6,
   },
   favIcon: {
     flexShrink: 0,
@@ -135,24 +150,36 @@ const styles = StyleSheet.create({
   },
   name: {
     flexShrink: 1,
-    fontSize: 17,
+    fontSize: 19,
     fontFamily: "montserratBold",
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
+  },
+  infoContainer: {
+    flexShrink: 1,
+    flexDirection: "row",
+    columnGap: 4,
   },
   addressContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
     columnGap: 4,
     marginBottom: 6,
   },
   address: {
-    flex: 1,
-    fontFamily: "montserratRegular",
-    flexWrap: "wrap",
+    width: "75%",
+    fontSize: 15,
+    fontFamily: "openSansRegular",
     textTransform: "capitalize",
   },
+  timeInfo: {
+    flexShrink: 0,
+    width: "25%",
+    fontSize: 15,
+  },
   price: {
-    fontFamily: "montserratRegular",
+    fontSize: 15,
+    fontFamily: "openSansRegular",
   },
   buttonContainer: {
     marginTop: 15,
