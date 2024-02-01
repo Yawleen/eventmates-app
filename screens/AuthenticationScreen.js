@@ -70,7 +70,6 @@ export default function AuthenticationScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
   },
   logoContainer: {
     alignSelf: "center",
@@ -108,7 +107,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     height: "50%",
-    paddingHorizontal: 20,
+    padding: 20,
     marginTop: "auto",
     backgroundColor: "#fff",
     overflow: "auto",

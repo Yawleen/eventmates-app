@@ -114,7 +114,7 @@ export default function RegistrationScreen() {
       return;
     }
 
-    if (!/^[a-zA-Z]{2,}$/.test(formData.firstName)) {
+    if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ]{2,}$/.test(formData.firstName)) {
       Alert.alert(
         "Erreur",
         "Le prénom doit contenir au moins 2 caractères alphabétiques."
@@ -122,7 +122,7 @@ export default function RegistrationScreen() {
       return;
     }
 
-    if (!/^[a-zA-Z]{2,}$/.test(formData.lastName)) {
+    if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ]{2,}$/.test(formData.lastName)) {
       Alert.alert(
         "Erreur",
         "Le nom de famille doit contenir au moins 2 caractères alphabétiques."
@@ -374,6 +374,7 @@ const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     width: "88%",
+    minHeight: 300,
     backgroundColor: "#fff",
     paddingHorizontal: 10,
     paddingTop: 50,

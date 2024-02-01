@@ -12,6 +12,7 @@ import {
   TextInput,
   StyleSheet,
   Image,
+  ScrollView,
   ImageBackground,
   ActivityIndicator,
   Alert,
@@ -94,67 +95,70 @@ export default function LoginScreen({ navigation }) {
       style={styles.imageBackground}
     >
       <KeyboardAvoidingView
+        style={styles.scrollViewContainer}
         {...(Platform.OS === IOS && { behavior: "position" })}
       >
-        <View style={styles.container}>
-          <View style={styles.logoContainer}>
-            <Image
-              style={styles.logo}
-              source={require("../assets/img/eventmates_logo_transparent_slogan.png")}
-            />
-          </View>
-          {isLoading ? (
-            <ActivityIndicator size="large" color={Colors.primary900} />
-          ) : (
-            <>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Email</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="johndoe@gmail.com"
-                  onChangeText={(value) => handleInputChange("email", value)}
-                  value={formData.email}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                />
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.label}>Mot de passe</Text>
-                <View style={styles.passwordInputContainer}>
+        <ScrollView>
+          <View style={styles.container}>
+            <View style={styles.logoContainer}>
+              <Image
+                style={styles.logo}
+                source={require("../assets/img/eventmates_logo_transparent_slogan.png")}
+              />
+            </View>
+            {isLoading ? (
+              <ActivityIndicator size="large" color={Colors.primary900} />
+            ) : (
+              <>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Email</Text>
                   <TextInput
-                    style={styles.passwordInput}
-                    placeholder="**********"
-                    onChangeText={(value) =>
-                      handleInputChange("password", value)
-                    }
-                    value={formData.password}
-                    returnKeyType="go"
-                    onSubmitEditing={handleLogin}
-                    secureTextEntry={!showPassword}
-                  />
-                  <MaterialCommunityIcons
-                    name={showPassword ? "eye-off" : "eye"}
-                    size={24}
-                    color="#aaa"
-                    style={styles.icon}
-                    onPress={toggleShowPassword}
+                    style={styles.input}
+                    placeholder="johndoe@gmail.com"
+                    onChangeText={(value) => handleInputChange("email", value)}
+                    value={formData.email}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
                   />
                 </View>
-              </View>
-              <View style={styles.resetButtonContainer}>
-                <Button
-                  text="Réinitialiser le mot de passe"
-                  textColor={Colors.textColor}
-                  backgroundColor="transparent"
-                  onPress={resetPasswordHandler}
-                />
-              </View>
-              <View style={styles.loginButtonContainer}>
-                <Button text="Se connecter" onPress={handleLogin} />
-              </View>
-            </>
-          )}
-        </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.label}>Mot de passe</Text>
+                  <View style={styles.passwordInputContainer}>
+                    <TextInput
+                      style={styles.passwordInput}
+                      placeholder="**********"
+                      onChangeText={(value) =>
+                        handleInputChange("password", value)
+                      }
+                      value={formData.password}
+                      returnKeyType="go"
+                      onSubmitEditing={handleLogin}
+                      secureTextEntry={!showPassword}
+                    />
+                    <MaterialCommunityIcons
+                      name={showPassword ? "eye-off" : "eye"}
+                      size={24}
+                      color="#aaa"
+                      style={styles.icon}
+                      onPress={toggleShowPassword}
+                    />
+                  </View>
+                </View>
+                <View style={styles.resetButtonContainer}>
+                  <Button
+                    text="Réinitialiser le mot de passe"
+                    textColor={Colors.textColor}
+                    backgroundColor="transparent"
+                    onPress={resetPasswordHandler}
+                  />
+                </View>
+                <View style={styles.loginButtonContainer}>
+                  <Button text="Se connecter" onPress={handleLogin} />
+                </View>
+              </>
+            )}
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -164,16 +168,23 @@ const styles = StyleSheet.create({
   imageBackground: {
     flex: 1,
     paddingVertical: 70,
-    justifyContent: "center"
-  },
-  container: {
-    width: "88%",
-    alignSelf: "center",
+    justifyContent: "center",
     alignItems: "center",
+  },
+  scrollViewContainer: {
+    width: "88%",
+    minHeight: 300,
     backgroundColor: "#fff",
     paddingHorizontal: 10,
-    paddingVertical: 50,
+    paddingTop: 50,
     borderRadius: 15,
+    overflow: "hidden",
+  },
+  container: {
+    width: "100%",
+    alignSelf: "center",
+    alignItems: "center",
+    marginVertical: "auto",
   },
   logoContainer: {
     alignSelf: "center",
@@ -231,5 +242,6 @@ const styles = StyleSheet.create({
   },
   loginButtonContainer: {
     width: "90%",
+    marginBottom: 50,
   },
 });

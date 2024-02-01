@@ -1,6 +1,7 @@
 import { useState } from "react";
 import validator from "validator";
 import { requestOptions } from "../helpers/requestOptions";
+import { IOS } from "../globals";
 import {
   View,
   Text,
@@ -11,6 +12,7 @@ import {
   Alert,
   Switch,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import Button from "../components/Button";
 import Colors from "../globals/colors";
@@ -60,7 +62,7 @@ export default function ResetPasswordScreen() {
         response.json().then((data) => {
           setIsLoading(false);
           Alert.alert(data.message);
-          setUserInfo({ email: "", password: "", resetToken: ""})
+          setUserInfo({ email: "", password: "", resetToken: "" });
         });
       });
     } catch (error) {
@@ -114,8 +116,12 @@ export default function ResetPasswordScreen() {
       resizeMode="cover"
       style={styles.imageBackground}
     >
-      <KeyboardAvoidingView behavior="position">
-        <View style={styles.container}>
+      <KeyboardAvoidingView
+        {...(Platform.OS === IOS && { behavior: "position" })}
+        style={styles.scrollViewContainer}
+        behavior="position"
+      >
+        <View>
           <Text style={styles.title}>Réinitialisation du mot de passe</Text>
           {isLoading ? (
             <ActivityIndicator size="large" color={Colors.primary900} />
@@ -211,15 +217,19 @@ export default function ResetPasswordScreen() {
 const styles = StyleSheet.create({
   imageBackground: {
     flex: 1,
+    paddingVertical: 70,
     justifyContent: "center",
+    alignItems: "center",
   },
-  container: {
+  scrollViewContainer: {
     width: "88%",
-    alignSelf: "center",
+    justifyContent: "center",
+    minHeight: 400,
     backgroundColor: "#fff",
-    paddingHorizontal: 20,
-    paddingVertical: 50,
+    paddingHorizontal: 25,
+    paddingTop: 50,
     borderRadius: 15,
+    overflow: "hidden",
   },
   title: {
     fontFamily: "openSansBold",
