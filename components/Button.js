@@ -22,18 +22,40 @@ export default function Button({
       >
         {backgroundColor || textColor ? (
           <View
-            style={{
-              backgroundColor
-            }}
+            style={[
+              styles.gradient,
+              {
+                backgroundColor: backgroundColor
+                  ? backgroundColor
+                  : "transparent",
+              },
+            ]}
           >
-            <Text style={[styles.text, { color: textColor, fontFamily: isBold ? "openSansBold" : "openSansRegular"}]}>{text}</Text>
+            <Text
+              style={[
+                styles.text,
+                {
+                  color: textColor ? textColor : "#fff",
+                  fontFamily: isBold ? "openSansBold" : "openSansRegular",
+                },
+              ]}
+            >
+              {text}
+            </Text>
           </View>
         ) : (
           <LinearGradient
             colors={[Colors.primary600, Colors.primary900]}
             style={styles.gradient}
           >
-            <Text style={[styles.text, { fontFamily: isBold ? "openSansBold" : "openSansRegular"}]}>{text}</Text>
+            <Text
+              style={[
+                styles.text,
+                { fontFamily: isBold ? "openSansBold" : "openSansRegular" },
+              ]}
+            >
+              {text}
+            </Text>
           </LinearGradient>
         )}
       </Pressable>
