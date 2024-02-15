@@ -16,7 +16,11 @@ import {
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
 import { useFonts } from "expo-font";
-import { ActivityIndicator, View, StyleSheet } from "react-native";
+import {
+  ActivityIndicator,
+  View,
+  StyleSheet,
+} from "react-native";
 import Colors from "./globals/colors";
 import AuthenticationScreen from "./screens/AuthenticationScreen";
 import RegistrationScreen from "./screens/RegistrationScreen";
@@ -97,7 +101,7 @@ export default function App() {
       ) : (
         <AppContext.Provider value={appContextValue}>
           <NavigationContainer>
-            <Stack.Navigator>
+            <Stack.Navigator initialRouteName={({ routes }) => routes.sellerHome}>
               {!isSignedIn ? (
                 <>
                   <Stack.Screen
@@ -131,7 +135,7 @@ export default function App() {
                           color="#111"
                           onPress={signOut}
                         />
-                      ),
+                      )
                     }}
                   ></Stack.Screen>
                   <Stack.Screen
@@ -195,5 +199,5 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     marginRight: 12,
     backgroundColor: Colors.primary700,
-  },
+  }
 });

@@ -40,7 +40,7 @@ function EventCard({ eventInfo }) {
       </View>
       <View style={styles.eventInfo}>
         <View style={styles.favIconContainer}>
-          <Text style={styles.name}>{eventInfo.name.replaceAll(/\s{2,}/g, " ")}</Text>
+          <Text style={styles.name}>{eventInfo.name}</Text>
           <Pressable
             onPress={() => console.log("ajout aux favoris")}
             style={styles.favIcon}
@@ -138,6 +138,7 @@ const styles = StyleSheet.create({
   favIconContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
+    columnGap: 5,
     alignItems: "center",
     marginBottom: 6,
   },
@@ -157,6 +158,7 @@ const styles = StyleSheet.create({
   infoContainer: {
     flexShrink: 1,
     flexDirection: "row",
+    alignItems: "center",
     columnGap: 4,
   },
   addressContainer: {
