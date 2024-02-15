@@ -3,6 +3,8 @@ import { useEffect, useState, useRef } from "react";
 import { ANDROID, AUTH_TOKEN } from "../globals";
 import Colors from "../globals/colors";
 import { getValueFor } from "../helpers/secureStore";
+import moment from "moment";
+import { Calendar, LocaleConfig } from "react-native-calendars";
 import { Searchbar } from "react-native-paper";
 import { useScrollToTop } from "@react-navigation/native";
 import { useCollapsibleHeader } from "react-navigation-collapsible";
@@ -23,6 +25,50 @@ import EventCard from "../components/EventCard";
 import IconButton from "../components/IconButton";
 import Button from "../components/Button";
 
+LocaleConfig.locales["fr"] = {
+  monthNames: [
+    "Janvier",
+    "Février",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juillet",
+    "Août",
+    "Septembre",
+    "Octobre",
+    "Novembre",
+    "Décembre",
+  ],
+  monthNamesShort: [
+    "Janv.",
+    "Févr.",
+    "Mars",
+    "Avril",
+    "Mai",
+    "Juin",
+    "Juil.",
+    "Août",
+    "Sept.",
+    "Oct.",
+    "Nov.",
+    "Déc.",
+  ],
+  dayNames: [
+    "Dimanche",
+    "Lundi",
+    "Mardi",
+    "Mercredi",
+    "Jeudi",
+    "Vendredi",
+    "Samedi",
+  ],
+  dayNamesShort: ["Dim.", "Lun.", "Mar.", "Mer.", "Jeu.", "Ven.", "Sam."],
+  today: "Aujourd'hui",
+};
+
+LocaleConfig.defaultLocale = "fr";
+
 export default function EventsScreen() {
   const flatList = useRef();
   const [eventsInfo, setEventsInfo] = useState({
@@ -34,10 +80,14 @@ export default function EventsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [showGenres, setShowGenres] = useState(false);
+  const [modal, setModal] = useState({ date: false, genres: false });
   const [isGenresLoading, setIsGenresLoading] = useState(false);
   const [genres, setGenres] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
+  const [selectedDate, setSelectedDate] = useState({
+    dateString: "",
+    dateUTC: "",
+  });
   const { onScroll, scrollIndicatorInsetTop, translateY } =
     useCollapsibleHeader({
       navigationOptions: {
@@ -54,7 +104,7 @@ export default function EventsScreen() {
   const onPressFunction = () =>
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
-  const fetchEvents = async (searchQuery = "", events = [], page = 1) => {
+  const fetchEvents = async (searchQuery = "", events = [], page = 1, date = "") => {
     setIsLoading(true);
 
     try {
@@ -65,7 +115,7 @@ export default function EventsScreen() {
             process.env.EXPO_PUBLIC_API_URL
           }/events?page=${page}&eventName=${searchQuery}&genres=${selectedGenres.join(
             ","
-          )}`,
+          )}&date=${date}`,
           requestOptions("GET", token)
         ).then((response) => {
           response.json().then((data) => {
@@ -96,7 +146,7 @@ export default function EventsScreen() {
 
   const handleLoadMore = () => {
     if (!eventsInfo.isLastPage && !isLoading) {
-      fetchEvents(searchQuery, eventsInfo.events, eventsInfo.page);
+      fetchEvents(searchQuery, eventsInfo.events, eventsInfo.page, selectedDate.dateUTC);
     }
   };
 
@@ -105,18 +155,18 @@ export default function EventsScreen() {
   const clearSearchInput = async () => {
     setSearchQuery("");
     setIsSearchLoading(true);
-    await fetchEvents();
+    await fetchEvents(undefined, undefined, undefined, selectedDate.dateUTC);
     setIsSearchLoading(false);
     onPressFunction();
   };
 
   const onSubmitSearch = async () => {
     setIsSearchLoading(true);
-    await fetchEvents(searchQuery);
+    await fetchEvents(searchQuery, undefined, undefined, selectedDate.dateUTC);
     setIsSearchLoading(false);
     onPressFunction();
-    if (showGenres) {
-      setShowGenres(false);
+    if (Object.values(modal).includes(true)) {
+      setModal({ date: false, genres: false });
     }
   };
 
@@ -124,7 +174,19 @@ export default function EventsScreen() {
 
   const setKeyExtractor = (item) => item._id;
 
-  const toggleGenresModal = () => setShowGenres(!showGenres);
+  const toggleModal = (filter) => {
+    if (filter === "date") {
+      setModal({ date: !modal.date, genres: false });
+      return;
+    }
+
+    if (filter === "genres") {
+      setModal({ date: false, genres: !modal.genres });
+      return;
+    }
+
+    setModal({ date: false, genres: false });
+  };
 
   const fetchGenres = async () => {
     setIsGenresLoading(true);
@@ -171,6 +233,17 @@ export default function EventsScreen() {
     }
 
     setSelectedGenres([...selectedGenres, genre]);
+  };
+
+  const resetSelectedDate = async () => {
+    setSelectedDate({ dateString: "", dateUTC: "" });
+    setIsSearchLoading(true);
+    await fetchEvents(searchQuery, undefined, undefined, undefined);
+    setIsSearchLoading(false);
+    onPressFunction();
+    if (Object.values(modal).includes(true)) {
+      setModal({ date: false, genres: false });
+    }
   };
 
   useEffect(() => {
@@ -228,10 +301,11 @@ export default function EventsScreen() {
           ]}
         >
           <Searchbar
-            placeholder="Rechercher un événement"
+            placeholder="Rechercher..."
             style={styles.searchBar}
             iconColor={Colors.primary900}
             inputStyle={styles.searchBarInput}
+            numberOfLines={1}
             value={searchQuery}
             loading={isSearchLoading ? true : false}
             onChangeText={(query) => handleSearch(query)}
@@ -239,12 +313,20 @@ export default function EventsScreen() {
               !isLoading && { onSubmitEditing: onSubmitSearch })}
             onClearIconPress={clearSearchInput}
           />
-          <View style={styles.genresFilter}>
+          <View style={styles.filter}>
+            <IconButton
+              icon="calendar-blank"
+              size={20}
+              color="#111"
+              onPress={() => toggleModal("date")}
+            />
+          </View>
+          <View style={styles.filter}>
             <IconButton
               icon="music"
               size={20}
               color="#111"
-              onPress={toggleGenresModal}
+              onPress={() => toggleModal("genres")}
             />
           </View>
         </Animated.View>
@@ -261,42 +343,92 @@ export default function EventsScreen() {
           </View>
         </>
       )}
-      {showGenres && (
+      {Object.values(modal).includes(true) && (
         <Modal
-          isVisible={showGenres}
+          isVisible={Object.values(modal).includes(true)}
           backdropColor="#111"
           backdropOpacity={0.6}
-          onBackdropPress={toggleGenresModal}
+          onBackdropPress={() => toggleModal()}
           hideModalContentWhileAnimating={true}
         >
           <View style={styles.modal}>
             <View style={styles.closeIconContainer}>
-              <Text style={styles.genresText}>Filtrer par genre(s) :</Text>
+              <Text style={styles.modalText}>{`Filtrer par ${
+                modal.genres ? "genre(s)" : "date"
+              } :`}</Text>
               <IconButton
                 icon="close"
                 size={26}
                 color="#111"
-                onPress={toggleGenresModal}
+                onPress={
+                  modal.genres
+                    ? () => toggleModal("genres")
+                    : () => toggleModal("date")
+                }
               />
             </View>
-            <FlatList
-              data={genres}
-              renderItem={renderGender}
-              keyExtractor={setKeyExtractor}
-              {...(isGenresLoading && {
-                ListFooterComponent: () => (
-                  <ActivityIndicator
-                    size="large"
-                    style={styles.loader}
-                    color={Colors.primary600}
-                  />
-                ),
-              })}
-            />
-            {!isGenresLoading && (
-              <View style={styles.buttonContainer}>
-                <Button text="Filtrer" onPress={onSubmitSearch} />
-              </View>
+            {modal.genres && (
+              <>
+                <FlatList
+                  data={genres}
+                  renderItem={renderGender}
+                  keyExtractor={setKeyExtractor}
+                  {...(isGenresLoading && {
+                    ListFooterComponent: () => (
+                      <ActivityIndicator
+                        size="large"
+                        style={styles.loader}
+                        color={Colors.primary600}
+                      />
+                    ),
+                  })}
+                />
+                {!isGenresLoading && (
+                  <View style={styles.buttonContainer}>
+                    <Button text="Filtrer" onPress={onSubmitSearch} />
+                  </View>
+                )}
+              </>
+            )}
+            {modal.date && (
+              <>
+                <Calendar
+                  minDate={moment().format("YYYY-MM-DD")}
+                  onDayPress={(day) =>
+                    setSelectedDate({
+                      dateString: day.dateString,
+                      dateUTC: moment(day.timestamp).utc().format(),
+                    })
+                  }
+                  monthFormat={"MMMM yyyy"}
+                  theme={{
+                    todayTextColor: Colors.primary900,
+                    selectedDayTextColor: "#fff",
+                    selectedDayBackgroundColor: Colors.primary900,
+                    dayTextColor: "#111",
+                    textMonthFontWeight: "bold",
+                    textMonthFontSize: 16,
+                    textDayFontSize: 16,
+                    arrowColor: Colors.primary900,
+                  }}
+                  markedDates={{
+                    [selectedDate.dateString]: { selected: true },
+                  }}
+                  disableMonthChange={true}
+                  firstDay={1}
+                  hideDayNames={false}
+                  onPressArrowLeft={(subtractMonth) => subtractMonth()}
+                  onPressArrowRight={(addMonth) => addMonth()}
+                  disableAllTouchEventsForDisabledDays={true}
+                  enableSwipeMonths={true}
+                />
+                <View style={styles.buttonContainer}>
+                  <Button text="Filtrer" onPress={onSubmitSearch} />
+                </View>
+                <View style={styles.resetButtonContainer}>
+                  <Button text="Réinitialiser" textColor={Colors.primary700} onPress={resetSelectedDate} />
+                </View>
+              </>
             )}
           </View>
         </Modal>
@@ -374,13 +506,15 @@ const styles = StyleSheet.create({
   },
   searchBar: {
     flexGrow: 1,
+    columnGap: -5,
     borderRadius: 10,
     backgroundColor: "#fff",
   },
   searchBarInput: {
+    flexGrow: 1,
     fontFamily: "openSansRegular",
   },
-  genresFilter: {
+  filter: {
     flexShrink: 0,
     justifyContent: "center",
     alignItems: "center",
@@ -397,13 +531,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
   },
-  genresText: {
+  modalText: {
     fontSize: 15,
     fontFamily: "openSansBold",
     marginBottom: 10,
   },
   checkBoxText: { fontFamily: "openSansRegular", fontSize: 15 },
   buttonContainer: {
-    marginTop: 15,
+    marginTop: 15
   },
+  resetButtonContainer: {
+    marginTop: 4
+  }
 });
