@@ -489,6 +489,22 @@ export default function EventsScreen() {
                     uncheckedColor="#111"
                     status={sortBy === "descPrice" ? "checked" : "unchecked"}
                   />
+                  <RadioButton.Item
+                    textStyle={styles.checkBoxText}
+                    value="ascStartDate"
+                    label="Date croissante"
+                    color={Colors.primary900}
+                    uncheckedColor="#111"
+                    status={sortBy === "ascStartDate" ? "checked" : "unchecked"}
+                  />
+                  <RadioButton.Item
+                    textStyle={styles.checkBoxText}
+                    value="descStartDate"
+                    label="Date décroissante"
+                    color={Colors.primary900}
+                    uncheckedColor="#111"
+                    status={sortBy === "descStartDate" ? "checked" : "unchecked"}
+                  />
                 </RadioButton.Group>
                 <View style={styles.buttonContainer}>
                   <Button text="Trier" onPress={onSubmitSearch} />
