@@ -10,7 +10,7 @@ export default function ParticipateEventButton({ eventId }) {
   const [isLoading, setIsLoading] = useState(false);
   const [isUserEvent, setIsUserEvent] = useState(false);
 
-  const addEvent = async () => {
+  const handleOnClick = async (action) => {
     const token = await getValueFor(AUTH_TOKEN);
 
     if (token) {
@@ -21,13 +21,17 @@ export default function ParticipateEventButton({ eventId }) {
 
         await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/user-events`,
-          requestOptions("POST", token, {
+          requestOptions(action === "add" ? "POST" : "DELETE", token, {
             userId: decodedToken.userId,
             eventId: eventId,
           })
         ).then((response) => {
           response.json().then((data) => {
-            setIsUserEvent(data.success);
+            if (action === "add") {
+              setIsUserEvent(data.success);
+            } else {
+              setIsUserEvent(false);
+            }
             Alert.alert(data.message);
           });
         });
@@ -52,8 +56,8 @@ export default function ParticipateEventButton({ eventId }) {
         ).then((response) =>
           response.json().then((data) => setIsUserEvent(data.isParticipant))
         );
-      } catch {
-        setIsUserEvent(false);
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
       }
       setIsLoading(false);
     }
@@ -69,9 +73,7 @@ export default function ParticipateEventButton({ eventId }) {
       size={27}
       color="#fff"
       {...(!isLoading && {
-        onPress: isUserEvent
-          ? () => console.log("suppression de l'événement")
-          : addEvent,
+        onPress: isUserEvent ? () => handleOnClick("delete") : () => handleOnClick("add"),
       })}
     />
   );
