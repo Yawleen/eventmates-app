@@ -2,6 +2,8 @@ import moment from "moment";
 import "moment/locale/fr";
 import { LinearGradient } from "expo-linear-gradient";
 import Colors from "../globals/colors";
+import { useState, useLayoutEffect } from "react";
+import jwt_decode from "jwt-decode";
 import ReadMore from "@fawazahmed/react-native-read-more";
 import {
   StyleSheet,
@@ -15,8 +17,13 @@ import {
 } from "react-native";
 import CategoryTag from "../components/CategoryTag";
 import Button from "../components/Button";
+import { getValueFor } from "../helpers/secureStore";
+import { AUTH_TOKEN } from "../globals";
+import { requestOptions } from "../helpers/requestOptions";
 
 export default function EventScreen({ route }) {
+  const [_, setIsLoading] = useState(false);
+  const [isUserEvent, setIsUserEvent] = useState(false);
   const eventInfo = route.params.data;
   const formatPrice = (price) =>
     price.toString().includes(".") ? price.toFixed(2) : price;
@@ -27,8 +34,34 @@ export default function EventScreen({ route }) {
 
     return address.join("\n");
   };
+
   const redirectToExternalLink = (url) =>
     Linking.openURL(url).catch((err) => Alert.alert("Erreur", err.message));
+
+  const isAnUserEvent = async (eventId) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      setIsLoading(true);
+      try {
+        const decodedToken = await jwt_decode(token);
+
+        fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?userId=${decodedToken.userId}&eventId=${eventId}`,
+          requestOptions("GET", token)
+        ).then((response) =>
+          response.json().then((data) => setIsUserEvent(data.isParticipant))
+        );
+      } catch {
+        setIsUserEvent(false);
+      }
+      setIsLoading(false);
+    }
+  };
+
+  useLayoutEffect(() => {
+    isAnUserEvent(eventInfo._id);
+  }, []);
 
   return (
     <View style={styles.eventPage}>
@@ -51,9 +84,7 @@ export default function EventScreen({ route }) {
           </ImageBackground>
         </View>
         <View style={styles.infoContainer}>
-          <Text style={styles.name}>
-            {eventInfo.name}
-          </Text>
+          <Text style={styles.name}>{eventInfo.name}</Text>
           <View style={styles.tagContainer}>
             <CategoryTag
               name={eventInfo.genre.name}
