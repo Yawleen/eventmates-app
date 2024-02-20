@@ -41,12 +41,12 @@ function EventCard({ eventInfo }) {
       <View style={styles.eventInfo}>
         <View style={styles.favIconContainer}>
           <Text style={styles.name}>{eventInfo.name}</Text>
-          <Pressable
+          {/* <Pressable
             onPress={() => console.log("ajout aux favoris")}
             style={styles.favIcon}
           >
             <IconButton icon="heart-outline" size={26} color="#111" />
-          </Pressable>
+          </Pressable> */}
         </View>
         <View style={styles.addressContainer}>
           <View style={styles.infoContainer}>
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     columnGap: 5,
     alignItems: "center",
-    marginBottom: 6,
+    marginVertical: 6
   },
   favIcon: {
     flexShrink: 0,
