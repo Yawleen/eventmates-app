@@ -3,10 +3,12 @@ import { AUTH_TOKEN } from "../globals";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
 import jwt_decode from "jwt-decode";
+import { useNavigation } from '@react-navigation/native';
 import { Alert } from "react-native";
 import IconButton from "./IconButton";
 
 export default function ParticipateEventButton({ eventId }) {
+  const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
   const [isUserEvent, setIsUserEvent] = useState(false);
 
@@ -65,7 +67,7 @@ export default function ParticipateEventButton({ eventId }) {
 
   useLayoutEffect(() => {
     isAnUserEvent(eventId);
-  }, []);
+  }, [navigation]);
 
   return (
     <IconButton
