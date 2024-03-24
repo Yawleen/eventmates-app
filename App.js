@@ -39,6 +39,7 @@ export default function App() {
     montserratBold: require("./assets/fonts/Montserrat-Bold.ttf"),
   });
   const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isUserEvent, setIsUserEvent] = useState(false);
 
   DefaultTheme.colors.background = "#12121E";
 
@@ -77,6 +78,8 @@ export default function App() {
 
     signOut();
   };
+
+  const EventDetailScreen = () => <EventScreen isUserEvent={isUserEvent} setIsUserEvent={setIsUserEvent} />
 
   useEffect(() => {
     checkAuthentication();
@@ -154,7 +157,7 @@ export default function App() {
                   ></Stack.Screen>
                   <Stack.Screen
                     name={SCREEN_EVENT}
-                    component={EventScreen}
+                    component={EventDetailScreen}
                     options={({ route }) => ({
                       title: "",
                       headerBackTitleVisible: false,
@@ -172,6 +175,8 @@ export default function App() {
                           <View style={styles.headerIcon}>
                             <ParticipateEventButton
                               eventId={route.params.data._id}
+                              isUserEvent={isUserEvent}
+                              setIsUserEvent={setIsUserEvent}
                             />
                           </View>
                         </View>

@@ -4,6 +4,10 @@ import { LinearGradient } from "expo-linear-gradient";
 import Colors from "../globals/colors";
 import { useState, useLayoutEffect } from "react";
 import jwt_decode from "jwt-decode";
+import { getValueFor } from "../helpers/secureStore";
+import { AUTH_TOKEN } from "../globals";
+import { requestOptions } from "../helpers/requestOptions";
+import { useNavigation, useRoute } from "@react-navigation/native";
 import ReadMore from "@fawazahmed/react-native-read-more";
 import {
   StyleSheet,
@@ -14,16 +18,25 @@ import {
   Linking,
   Alert,
   Pressable,
+  TextInput,
 } from "react-native";
 import CategoryTag from "../components/CategoryTag";
 import Button from "../components/Button";
-import { getValueFor } from "../helpers/secureStore";
-import { AUTH_TOKEN } from "../globals";
-import { requestOptions } from "../helpers/requestOptions";
+import Modal from "react-native-modal";
+import IconButton from "../components/IconButton";
+import QuantitySelector from "../components/QuantitySelector";
 
-export default function EventScreen({ route }) {
+export default function EventScreen({ isUserEvent, setIsUserEvent }) {
+  const navigation = useNavigation();
+  const route = useRoute();
   const [_, setIsLoading] = useState(false);
-  const [isUserEvent, setIsUserEvent] = useState(false);
+  const [userInGroup, setUserInGroup] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [groupCreationInfo, setGroupCreationInfo] = useState({
+    name: "",
+    description: "",
+    maxCapacity: 1,
+  });
   const eventInfo = route.params.data;
   const formatPrice = (price) =>
     price.toString().includes(".") ? price.toFixed(2) : price;
@@ -59,9 +72,101 @@ export default function EventScreen({ route }) {
     }
   };
 
+  const isUserInAGroup = async (eventId) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      setIsLoading(true);
+      try {
+        const decodedToken = await jwt_decode(token);
+
+        fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/is-user-in-group?userId=${decodedToken.userId}&eventId=${eventId}`,
+          requestOptions("GET", token)
+        ).then((response) =>
+          response.json().then((data) => setUserInGroup(data.isMember))
+        );
+      } catch {
+        setUserInGroup(false);
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const toggleModal = () => setShowModal(!showModal);
+
+  const createGroup = async (groupInfo) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      setIsLoading(true);
+
+      try {
+        const decodedToken = await jwt_decode(token);
+
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
+          requestOptions("POST", token, {
+            ...groupInfo,
+            userId: decodedToken.userId,
+            eventId: eventInfo._id,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            setUserInGroup(data.success);
+            setShowModal(false);
+            Alert.alert(data.message);
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const handleSubmit = () => {
+    if (
+      !Object.values(groupCreationInfo).every((inputValue) => inputValue !== "")
+    ) {
+      Alert.alert("Erreur", "Tous les champs doivent être remplis.");
+      return;
+    }
+
+    const groupData = {
+      name: groupCreationInfo.name.trim(),
+      description: groupCreationInfo.description.trim(),
+      maxCapacity: groupCreationInfo.maxCapacity,
+    };
+
+    createGroup(groupData);
+  };
+
+  const handleInputChange = (field, value) => {
+    if (field == "maxCapacity") {
+      if (value === "add" && groupCreationInfo.maxCapacity < 7) {
+        setGroupCreationInfo({
+          ...groupCreationInfo,
+          [field]: groupCreationInfo.maxCapacity + 1,
+        });
+      }
+
+      if (value == "subtract" && groupCreationInfo.maxCapacity > 1) {
+        setGroupCreationInfo({
+          ...groupCreationInfo,
+          [field]: groupCreationInfo.maxCapacity - 1,
+        });
+      }
+      return;
+    }
+
+    setGroupCreationInfo({ ...groupCreationInfo, [field]: value });
+  };
+
   useLayoutEffect(() => {
     isAnUserEvent(eventInfo._id);
-  }, []);
+    isUserInAGroup(eventInfo._id);
+  }, [navigation]);
 
   return (
     <View style={styles.eventPage}>
@@ -193,6 +298,15 @@ export default function EventScreen({ route }) {
               </View>
             )}
           </View>
+          {isUserEvent && (
+            <View style={styles.eventGroupsContainer}>
+              {!userInGroup && (
+                <View>
+                  <Button text="Créer un groupe" onPress={toggleModal} />
+                </View>
+              )}
+            </View>
+          )}
           <View>
             <Button
               text="Réserver sur Ticketmaster"
@@ -201,6 +315,62 @@ export default function EventScreen({ route }) {
             />
           </View>
         </View>
+        {showModal && (
+          <Modal
+            isVisible={showModal}
+            backdropColor="#111"
+            backdropOpacity={0.6}
+            onBackdropPress={toggleModal}
+            hideModalContentWhileAnimating={true}
+          >
+            <View style={styles.modal}>
+              <View style={styles.closeIconContainer}>
+                <Text style={styles.modalText}>Création d'un groupe</Text>
+                <IconButton
+                  icon="close"
+                  size={26}
+                  color="#111"
+                  onPress={toggleModal}
+                />
+              </View>
+              <ScrollView>
+                <Text style={styles.label}>Nom du groupe</Text>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={(value) => handleInputChange("name", value)}
+                  value={groupCreationInfo.name}
+                  returnKeyType="go"
+                />
+                <Text style={styles.label}>Description</Text>
+                <TextInput
+                  style={styles.input}
+                  multiline={true}
+                  numberOfLines={8}
+                  onChangeText={(value) =>
+                    handleInputChange("description", value)
+                  }
+                  value={groupCreationInfo.description}
+                />
+                <View style={styles.selectorsContainer}>
+                  <QuantitySelector
+                    sign="minus"
+                    onPress={() => handleInputChange("maxCapacity", "subtract")}
+                  />
+                  <Text style={styles.capacityText}>
+                    {groupCreationInfo.maxCapacity}
+                  </Text>
+                  <QuantitySelector
+                    sign="plus"
+                    onPress={() => handleInputChange("maxCapacity", "add")}
+                  />
+                </View>
+                <View>
+                  <Button text="Valider" onPress={handleSubmit} />
+                </View>
+              </ScrollView>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
     </View>
   );
@@ -283,5 +453,48 @@ const styles = StyleSheet.create({
   },
   accessibilityContainer: {
     marginBottom: 20,
+  },
+  modal: {
+    backgroundColor: "#fff",
+    padding: 30,
+    borderRadius: 20,
+  },
+  closeIconContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+  },
+  modalText: {
+    fontSize: 15,
+    fontFamily: "openSansBold",
+    marginBottom: 10,
+  },
+  input: {
+    fontFamily: "openSansRegular",
+    borderRadius: 10,
+    height: 50,
+    borderColor: "#111",
+    color: Colors.textColor,
+    borderWidth: 1,
+    paddingLeft: 10,
+    marginBottom: 25,
+    overflow: "hidden",
+  },
+  selectorsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 15,
+    alignSelf: "center",
+    marginBottom: 40,
+  },
+  capacityText: {
+    fontFamily: "openSansBold",
+    fontSize: 16,
+  },
+  label: {
+    fontFamily: "openSansBold",
+    color: Colors.textColor,
+    fontSize: 14,
+    marginBottom: 8,
   },
 });

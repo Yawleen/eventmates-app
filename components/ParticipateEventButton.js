@@ -3,14 +3,17 @@ import { AUTH_TOKEN } from "../globals";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
 import jwt_decode from "jwt-decode";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import { Alert } from "react-native";
 import IconButton from "./IconButton";
 
-export default function ParticipateEventButton({ eventId }) {
+export default function ParticipateEventButton({
+  eventId,
+  isUserEvent,
+  setIsUserEvent,
+}) {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-  const [isUserEvent, setIsUserEvent] = useState(false);
 
   const handleOnClick = async (action) => {
     const token = await getValueFor(AUTH_TOKEN);
@@ -75,7 +78,9 @@ export default function ParticipateEventButton({ eventId }) {
       size={27}
       color="#fff"
       {...(!isLoading && {
-        onPress: isUserEvent ? () => handleOnClick("delete") : () => handleOnClick("add"),
+        onPress: isUserEvent
+          ? () => handleOnClick("delete")
+          : () => handleOnClick("add"),
       })}
     />
   );
