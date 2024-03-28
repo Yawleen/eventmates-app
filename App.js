@@ -12,6 +12,7 @@ import {
   SCREEN_RESET_PASSWORD,
   SCREEN_EVENTS,
   SCREEN_EVENT,
+  SCREEN_GROUPS,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -28,6 +29,7 @@ import EventsScreen from "./screens/EventsScreen";
 import EventScreen from "./screens/EventScreen";
 import IconButton from "./components/IconButton";
 import ParticipateEventButton from "./components/ParticipateEventButton";
+import GroupsScreen from "./screens/GroupsScreen";
 
 const Stack = createStackNavigator();
 
@@ -182,6 +184,10 @@ export default function App() {
                         </View>
                       ),
                     })}
+                  ></Stack.Screen>
+                  <Stack.Screen
+                    name={SCREEN_GROUPS}
+                    component={GroupsScreen}
                   ></Stack.Screen>
                 </>
               )}

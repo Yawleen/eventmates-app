@@ -104,7 +104,12 @@ export default function EventsScreen() {
   const onPressFunction = () =>
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
-  const fetchEvents = async (searchQuery = "", events = [], page = 1, date = "") => {
+  const fetchEvents = async (
+    searchQuery = "",
+    events = [],
+    page = 1,
+    date = ""
+  ) => {
     setIsLoading(true);
 
     try {
@@ -146,7 +151,12 @@ export default function EventsScreen() {
 
   const handleLoadMore = () => {
     if (!eventsInfo.isLastPage && !isLoading) {
-      fetchEvents(searchQuery, eventsInfo.events, eventsInfo.page, selectedDate.dateUTC);
+      fetchEvents(
+        searchQuery,
+        eventsInfo.events,
+        eventsInfo.page,
+        selectedDate.dateUTC
+      );
     }
   };
 
@@ -426,7 +436,11 @@ export default function EventsScreen() {
                   <Button text="Filtrer" onPress={onSubmitSearch} />
                 </View>
                 <View style={styles.resetButtonContainer}>
-                  <Button text="Réinitialiser" textColor={Colors.primary700} onPress={resetSelectedDate} />
+                  <Button
+                    text="Réinitialiser"
+                    textColor={Colors.primary700}
+                    onPress={resetSelectedDate}
+                  />
                 </View>
               </>
             )}
@@ -538,9 +552,9 @@ const styles = StyleSheet.create({
   },
   checkBoxText: { fontFamily: "openSansRegular", fontSize: 15 },
   buttonContainer: {
-    marginTop: 15
+    marginTop: 15,
   },
   resetButtonContainer: {
-    marginTop: 4
-  }
+    marginTop: 4,
+  },
 });
