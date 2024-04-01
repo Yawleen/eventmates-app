@@ -14,7 +14,7 @@ import {
   ScrollView,
   TextInput,
   Alert,
-  Pressable
+  Pressable,
 } from "react-native";
 import EventGroup from "../components/EventGroup";
 import QuantitySelector from "../components/QuantitySelector";
@@ -27,7 +27,7 @@ export default function GroupsScreen({ route, navigation }) {
   const minParticipants = 2;
   const maxParticipants = 7;
   const [isLoading, setIsLoading] = useState(false);
-  const [userInGroup, setUserInGroup] = useState(false);
+  const [userInGroup, setUserInGroup] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [groupsInfo, setGroupsInfo] = useState({
     groups: [],
@@ -219,10 +219,14 @@ export default function GroupsScreen({ route, navigation }) {
           })}
         ListHeaderComponent={() => (
           <>
-            <Text style={styles.nbOfGroups}>
-              <Text style={styles.nbOfGroupsBold}>{groupsInfo.nbOfGroups}</Text>{" "}
-              groupe(s) EventMates créé(s)
-            </Text>
+            {!isLoading && (
+              <Text style={styles.nbOfGroups}>
+                <Text style={styles.nbOfGroupsBold}>
+                  {groupsInfo.nbOfGroups}
+                </Text>{" "}
+                groupe(s) EventMates créé(s)
+              </Text>
+            )}
             {!userInGroup && (
               <View style={styles.buttonContainer}>
                 <Button text="Créer un groupe" onPress={toggleModal} />
