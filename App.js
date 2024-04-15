@@ -16,11 +16,7 @@ import {
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
 import { useFonts } from "expo-font";
-import {
-  ActivityIndicator,
-  View,
-  StyleSheet,
-} from "react-native";
+import { ActivityIndicator, View, StyleSheet } from "react-native";
 import Colors from "./globals/colors";
 import AuthenticationScreen from "./screens/AuthenticationScreen";
 import RegistrationScreen from "./screens/RegistrationScreen";
@@ -31,6 +27,7 @@ import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import EventsScreen from "./screens/EventsScreen";
 import EventScreen from "./screens/EventScreen";
 import IconButton from "./components/IconButton";
+import ParticipateEventButton from "./components/ParticipateEventButton";
 
 const Stack = createStackNavigator();
 
@@ -101,7 +98,9 @@ export default function App() {
       ) : (
         <AppContext.Provider value={appContextValue}>
           <NavigationContainer>
-            <Stack.Navigator initialRouteName={({ routes }) => routes.sellerHome}>
+            <Stack.Navigator
+              initialRouteName={({ routes }) => routes.sellerHome}
+            >
               {!isSignedIn ? (
                 <>
                   <Stack.Screen
@@ -135,7 +134,7 @@ export default function App() {
                           color="#111"
                           onPress={signOut}
                         />
-                      )
+                      ),
                     }}
                   ></Stack.Screen>
                   <Stack.Screen
@@ -156,21 +155,28 @@ export default function App() {
                   <Stack.Screen
                     name={SCREEN_EVENT}
                     component={EventScreen}
-                    options={{
+                    options={({ route }) => ({
                       title: "",
                       headerBackTitleVisible: false,
                       headerTransparent: true,
                       headerTintColor: "#fff",
                       headerRight: () => (
-                        <View style={styles.favIcon}>
-                          <IconButton
-                            icon="heart-outline"
-                            size={27}
-                            color="#fff"
-                          />
+                        <View style={styles.headerIconContainer}>
+                          {/* <View style={styles.headerIcon}>
+                            <IconButton
+                              icon="heart-outline"
+                              size={27}
+                              color="#fff"
+                            />
+                          </View> */}
+                          <View style={styles.headerIcon}>
+                            <ParticipateEventButton
+                              eventId={route.params.data._id}
+                            />
+                          </View>
                         </View>
                       ),
-                    }}
+                    })}
                   ></Stack.Screen>
                 </>
               )}
@@ -191,13 +197,17 @@ const styles = StyleSheet.create({
   logOutButton: {
     marginRight: 15,
   },
-  favIcon: {
+  headerIconContainer: {
+    flexDirection: "row",
+    columnGap: 8,
+    marginRight: 12,
+  },
+  headerIcon: {
     justifyContent: "center",
     alignItems: "center",
     width: 45,
     height: 45,
     borderRadius: 50,
-    marginRight: 12,
     backgroundColor: Colors.primary700,
-  }
+  },
 });
