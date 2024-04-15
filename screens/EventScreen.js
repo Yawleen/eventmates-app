@@ -3,7 +3,6 @@ import "moment/locale/fr";
 import { LinearGradient } from "expo-linear-gradient";
 import Colors from "../globals/colors";
 import { useState, useLayoutEffect } from "react";
-import jwt_decode from "jwt-decode";
 import { getValueFor } from "../helpers/secureStore";
 import { AUTH_TOKEN, SCREEN_GROUPS } from "../globals";
 import { requestOptions } from "../helpers/requestOptions";
@@ -21,7 +20,6 @@ import {
 } from "react-native";
 import CategoryTag from "../components/CategoryTag";
 import Button from "../components/Button";
-
 
 export default function EventScreen({ isUserEvent, setIsUserEvent }) {
   const navigation = useNavigation();
@@ -42,7 +40,8 @@ export default function EventScreen({ isUserEvent, setIsUserEvent }) {
   const redirectToExternalLink = (url) =>
     Linking.openURL(url).catch((err) => Alert.alert("Erreur", err.message));
 
-  const redirectToGroups = () => navigation.navigate(SCREEN_GROUPS, { data: eventInfo });
+  const redirectToGroups = () =>
+    navigation.navigate(SCREEN_GROUPS, { data: eventInfo });
 
   const isAnUserEvent = async (eventId) => {
     const token = await getValueFor(AUTH_TOKEN);

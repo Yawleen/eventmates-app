@@ -63,12 +63,10 @@ export default function GroupScreen({ route, navigation }) {
 
     if (token) {
       try {
-        const decodedToken = await jwt_decode(token);
         await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
           requestOptions("PUT", token, {
             ...updateInfo,
-            userId: decodedToken.userId,
             eventId: groupInfo.event._id,
           })
         ).then((response) => {

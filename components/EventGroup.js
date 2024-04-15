@@ -25,7 +25,8 @@ export default function EventGroup({ groupInfo }) {
     }
   };
 
-  const redirectToGroup = () => navigation.navigate(SCREEN_GROUP, { data: groupInfo });
+  const redirectToGroup = () =>
+    navigation.navigate(SCREEN_GROUP, { data: groupInfo });
 
   useEffect(() => {
     checkUserGroup();
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     fontFamily: "openSansBold",
     fontSize: 17,
     color: Colors.primary900,
-    marginBottom: 20
+    marginBottom: 20,
   },
   membersContainer: {
     flexDirection: "row",
@@ -101,7 +102,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   maxCapacityContainer: {
-    marginTop: 15
+    marginTop: 15,
   },
   eventGroupText: {
     fontFamily: "openSansRegular",
@@ -110,7 +111,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   description: {
-    fontSize: 14
+    fontSize: 14,
   },
   eventGroupInfoTextBold: {
     fontFamily: "openSansBold",

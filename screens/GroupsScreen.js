@@ -3,7 +3,6 @@ import { getValueFor } from "../helpers/secureStore";
 import { AUTH_TOKEN } from "../globals";
 import { requestOptions } from "../helpers/requestOptions";
 import Colors from "../globals/colors";
-import jwt_decode from "jwt-decode";
 import { MIN_PARTICIPANTS, MAX_PARTICIPANTS } from "../globals";
 import { ActivityIndicator } from "react-native-paper";
 import Modal from "react-native-modal";
@@ -50,10 +49,8 @@ export default function GroupsScreen({ route, navigation }) {
     if (token) {
       setIsLoading(true);
       try {
-        const decodedToken = await jwt_decode(token);
-
         fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/is-user-in-group?userId=${decodedToken.userId}&eventId=${eventId}`,
+          `${process.env.EXPO_PUBLIC_API_URL}/is-user-in-group?eventId=${eventId}`,
           requestOptions("GET", token)
         ).then((response) =>
           response.json().then((data) => setUserInGroup(data.isMember))
@@ -74,13 +71,10 @@ export default function GroupsScreen({ route, navigation }) {
       setIsLoading(true);
 
       try {
-        const decodedToken = await jwt_decode(token);
-
         await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
           requestOptions("POST", token, {
             ...groupInfo,
-            userId: decodedToken.userId,
             eventId: eventInfo._id,
           })
         ).then((response) => {
@@ -151,9 +145,8 @@ export default function GroupsScreen({ route, navigation }) {
       const token = await getValueFor(AUTH_TOKEN);
 
       if (token) {
-        const decodedToken = await jwt_decode(token);
         await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/event-groups?eventId=${eventInfo._id}&userId=${decodedToken.userId}&page=${groupsInfo.page}`,
+          `${process.env.EXPO_PUBLIC_API_URL}/event-groups?eventId=${eventInfo._id}&page=${groupsInfo.page}`,
           requestOptions("GET", token)
         ).then((response) => {
           response.json().then((data) => {
