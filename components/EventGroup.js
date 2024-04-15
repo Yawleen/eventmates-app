@@ -1,13 +1,15 @@
 import jwt_decode from "jwt-decode";
 import { getValueFor } from "../helpers/secureStore";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import Colors from "../globals/colors";
-import { AUTH_TOKEN } from "../globals";
+import { AUTH_TOKEN, SCREEN_GROUP } from "../globals";
 import { useEffect, useState } from "react";
 import { StyleSheet, Text, View, Pressable } from "react-native";
 
 export default function EventGroup({ groupInfo }) {
   const [isUserGroup, setIsUserGroup] = useState(false);
+  const navigation = useNavigation();
 
   const checkUserGroup = async () => {
     const token = await getValueFor(AUTH_TOKEN);
@@ -23,13 +25,15 @@ export default function EventGroup({ groupInfo }) {
     }
   };
 
+  const redirectToGroup = () => navigation.navigate(SCREEN_GROUP, { data: groupInfo });
+
   useEffect(() => {
     checkUserGroup();
   }, []);
 
   return (
     <Pressable
-      onPress={() => console.log("cc")}
+      onPress={redirectToGroup}
       style={
         isUserGroup
           ? [styles.eventGroup, styles.eventUserGroup]
@@ -37,7 +41,6 @@ export default function EventGroup({ groupInfo }) {
       }
     >
       <Text style={styles.eventGroupName}>{groupInfo.name}</Text>
-      <View style={styles.separator}></View>
       <View style={styles.membersContainer}>
         <MaterialCommunityIcons name="account" size={18} color="#111" />
         <Text style={styles.eventGroupText}>
@@ -90,14 +93,7 @@ const styles = StyleSheet.create({
     fontFamily: "openSansBold",
     fontSize: 17,
     color: Colors.primary900,
-  },
-  separator: {
-    width: "60%",
-    height: 1,
-    alignSelf: "center",
-    backgroundColor: "#111",
-    marginTop: 15,
-    marginBottom: 30
+    marginBottom: 20
   },
   membersContainer: {
     flexDirection: "row",

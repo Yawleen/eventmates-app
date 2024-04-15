@@ -13,6 +13,7 @@ import {
   SCREEN_EVENTS,
   SCREEN_EVENT,
   SCREEN_GROUPS,
+  SCREEN_GROUP,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -30,6 +31,7 @@ import EventScreen from "./screens/EventScreen";
 import IconButton from "./components/IconButton";
 import ParticipateEventButton from "./components/ParticipateEventButton";
 import GroupsScreen from "./screens/GroupsScreen";
+import GroupScreen from "./screens/GroupScreen";
 
 const Stack = createStackNavigator();
 
@@ -188,6 +190,16 @@ export default function App() {
                   <Stack.Screen
                     name={SCREEN_GROUPS}
                     component={GroupsScreen}
+                    options={() => ({
+                      headerBackTitleVisible: false,
+                    })}
+                  ></Stack.Screen>
+                    <Stack.Screen
+                    name={SCREEN_GROUP}
+                    component={GroupScreen}
+                    options={() => ({
+                      headerBackTitleVisible: false,
+                    })}
                   ></Stack.Screen>
                 </>
               )}
