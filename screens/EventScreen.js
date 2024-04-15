@@ -3,7 +3,9 @@ import "moment/locale/fr";
 import { LinearGradient } from "expo-linear-gradient";
 import Colors from "../globals/colors";
 import { useState, useLayoutEffect } from "react";
-import jwt_decode from "jwt-decode";
+import { getValueFor } from "../helpers/secureStore";
+import { AUTH_TOKEN } from "../globals";
+import { requestOptions } from "../helpers/requestOptions";
 import ReadMore from "@fawazahmed/react-native-read-more";
 import {
   StyleSheet,
@@ -44,10 +46,8 @@ export default function EventScreen({ route }) {
     if (token) {
       setIsLoading(true);
       try {
-        const decodedToken = await jwt_decode(token);
-
         fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?userId=${decodedToken.userId}&eventId=${eventId}`,
+          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?eventId=${eventId}`,
           requestOptions("GET", token)
         ).then((response) =>
           response.json().then((data) => setIsUserEvent(data.isParticipant))

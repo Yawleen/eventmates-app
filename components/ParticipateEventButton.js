@@ -2,8 +2,7 @@ import { useLayoutEffect, useState } from "react";
 import { AUTH_TOKEN } from "../globals";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
-import jwt_decode from "jwt-decode";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import { Alert } from "react-native";
 import IconButton from "./IconButton";
 
@@ -19,12 +18,9 @@ export default function ParticipateEventButton({ eventId }) {
       setIsLoading(true);
 
       try {
-        const decodedToken = await jwt_decode(token);
-
         await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/user-events`,
           requestOptions(action === "add" ? "POST" : "DELETE", token, {
-            userId: decodedToken.userId,
             eventId: eventId,
           })
         ).then((response) => {
@@ -50,10 +46,8 @@ export default function ParticipateEventButton({ eventId }) {
     if (token) {
       setIsLoading(true);
       try {
-        const decodedToken = await jwt_decode(token);
-
         fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?userId=${decodedToken.userId}&eventId=${eventId}`,
+          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?eventId=${eventId}`,
           requestOptions("GET", token)
         ).then((response) =>
           response.json().then((data) => setIsUserEvent(data.isParticipant))
@@ -75,7 +69,9 @@ export default function ParticipateEventButton({ eventId }) {
       size={27}
       color="#fff"
       {...(!isLoading && {
-        onPress: isUserEvent ? () => handleOnClick("delete") : () => handleOnClick("add"),
+        onPress: isUserEvent
+          ? () => handleOnClick("delete")
+          : () => handleOnClick("add"),
       })}
     />
   );
