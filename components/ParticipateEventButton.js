@@ -6,10 +6,13 @@ import { useNavigation } from "@react-navigation/native";
 import { Alert } from "react-native";
 import IconButton from "./IconButton";
 
-export default function ParticipateEventButton({ eventId }) {
+export default function ParticipateEventButton({
+  eventId,
+  isUserEvent,
+  setIsUserEvent,
+}) {
   const navigation = useNavigation();
   const [isLoading, setIsLoading] = useState(false);
-  const [isUserEvent, setIsUserEvent] = useState(false);
 
   const handleOnClick = async (action) => {
     const token = await getValueFor(AUTH_TOKEN);
