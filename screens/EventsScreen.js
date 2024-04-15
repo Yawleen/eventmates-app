@@ -5,7 +5,7 @@ import Colors from "../globals/colors";
 import { getValueFor } from "../helpers/secureStore";
 import moment from "moment";
 import { Calendar, LocaleConfig } from "react-native-calendars";
-import { Searchbar } from "react-native-paper";
+import { Searchbar, RadioButton } from "react-native-paper";
 import { useScrollToTop } from "@react-navigation/native";
 import { useCollapsibleHeader } from "react-navigation-collapsible";
 import Modal from "react-native-modal";
@@ -80,7 +80,11 @@ export default function EventsScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [modal, setModal] = useState({ date: false, genres: false });
+  const [modal, setModal] = useState({
+    date: false,
+    genres: false,
+    sort: false,
+  });
   const [isGenresLoading, setIsGenresLoading] = useState(false);
   const [genres, setGenres] = useState([]);
   const [selectedGenres, setSelectedGenres] = useState([]);
@@ -88,6 +92,7 @@ export default function EventsScreen() {
     dateString: "",
     dateUTC: "",
   });
+  const [sortBy, setSortBy] = useState("ascPrice");
   const { onScroll, scrollIndicatorInsetTop, translateY } =
     useCollapsibleHeader({
       navigationOptions: {
@@ -104,7 +109,12 @@ export default function EventsScreen() {
   const onPressFunction = () =>
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
-  const fetchEvents = async (searchQuery = "", events = [], page = 1, date = "") => {
+  const fetchEvents = async (
+    searchQuery = "",
+    events = [],
+    page = 1,
+    date = ""
+  ) => {
     setIsLoading(true);
 
     try {
@@ -115,7 +125,7 @@ export default function EventsScreen() {
             process.env.EXPO_PUBLIC_API_URL
           }/events?page=${page}&eventName=${searchQuery}&genres=${selectedGenres.join(
             ","
-          )}&date=${date}`,
+          )}&date=${date}&sort=${sortBy}`,
           requestOptions("GET", token)
         ).then((response) => {
           response.json().then((data) => {
@@ -146,7 +156,12 @@ export default function EventsScreen() {
 
   const handleLoadMore = () => {
     if (!eventsInfo.isLastPage && !isLoading) {
-      fetchEvents(searchQuery, eventsInfo.events, eventsInfo.page, selectedDate.dateUTC);
+      fetchEvents(
+        searchQuery,
+        eventsInfo.events,
+        eventsInfo.page,
+        selectedDate.dateUTC
+      );
     }
   };
 
@@ -166,7 +181,7 @@ export default function EventsScreen() {
     setIsSearchLoading(false);
     onPressFunction();
     if (Object.values(modal).includes(true)) {
-      setModal({ date: false, genres: false });
+      setModal({ date: false, genres: false, sort: false });
     }
   };
 
@@ -176,16 +191,21 @@ export default function EventsScreen() {
 
   const toggleModal = (filter) => {
     if (filter === "date") {
-      setModal({ date: !modal.date, genres: false });
+      setModal({ date: !modal.date, genres: false, sort: false });
       return;
     }
 
     if (filter === "genres") {
-      setModal({ date: false, genres: !modal.genres });
+      setModal({ date: false, genres: !modal.genres, sort: false });
       return;
     }
 
-    setModal({ date: false, genres: false });
+    if (filter === "sort") {
+      setModal({ date: false, genres: false, sort: !modal.sort });
+      return;
+    }
+
+    setModal({ date: false, genres: false, sort: false });
   };
 
   const fetchGenres = async () => {
@@ -242,7 +262,7 @@ export default function EventsScreen() {
     setIsSearchLoading(false);
     onPressFunction();
     if (Object.values(modal).includes(true)) {
-      setModal({ date: false, genres: false });
+      setModal({ date: false, genres: false, sort: false });
     }
   };
 
@@ -259,7 +279,7 @@ export default function EventsScreen() {
       <View style={styles.eventListContainer}>
         <Animated.FlatList
           onScroll={onScroll}
-          contentContainerStyle={styles.eventsList}
+          contentContainerStyle={[styles.eventsList, { paddingTop: isLoading ? 200 : 240 }]}
           scrollIndicatorInsets={{
             top: scrollIndicatorInsetTop + stickyHeaderHeight,
           }}
@@ -279,16 +299,6 @@ export default function EventsScreen() {
                 />
               ),
             })}
-          {...(!isLoading && {
-            ListHeaderComponent: () => (
-              <Text style={styles.nbOfEvents}>
-                <Text style={styles.nbOfEventsBold}>
-                  {eventsInfo.nbOfEvents}
-                </Text>{" "}
-                événement(s) à venir
-              </Text>
-            ),
-          })}
           ItemSeparatorComponent={<View style={styles.separator}></View>}
         />
         <Animated.View
@@ -297,38 +307,57 @@ export default function EventsScreen() {
               transform: [{ translateY }],
               top: Platform.OS === ANDROID ? 80 : 92,
             },
-            styles.searchBarContainer,
+            styles.stickyBar,
           ]}
         >
-          <Searchbar
-            placeholder="Rechercher..."
-            style={styles.searchBar}
-            iconColor={Colors.primary900}
-            inputStyle={styles.searchBarInput}
-            numberOfLines={1}
-            value={searchQuery}
-            loading={isSearchLoading ? true : false}
-            onChangeText={(query) => handleSearch(query)}
-            {...(!isSearchLoading &&
-              !isLoading && { onSubmitEditing: onSubmitSearch })}
-            onClearIconPress={clearSearchInput}
-          />
-          <View style={styles.filter}>
-            <IconButton
-              icon="calendar-blank"
-              size={20}
-              color="#111"
-              onPress={() => toggleModal("date")}
+          <View style={styles.searchBarContainer}>
+            <Searchbar
+              placeholder="Rechercher..."
+              style={styles.searchBar}
+              iconColor={Colors.primary900}
+              inputStyle={styles.searchBarInput}
+              numberOfLines={1}
+              value={searchQuery}
+              loading={isSearchLoading ? true : false}
+              onChangeText={(query) => handleSearch(query)}
+              {...(!isSearchLoading &&
+                !isLoading && { onSubmitEditing: onSubmitSearch })}
+              onClearIconPress={clearSearchInput}
             />
+            <View style={styles.filter}>
+              <IconButton
+                icon="calendar-blank"
+                size={20}
+                color="#111"
+                onPress={() => toggleModal("date")}
+              />
+            </View>
+            <View style={styles.filter}>
+              <IconButton
+                icon="music"
+                size={20}
+                color="#111"
+                onPress={() => toggleModal("genres")}
+              />
+            </View>
           </View>
-          <View style={styles.filter}>
-            <IconButton
-              icon="music"
-              size={20}
-              color="#111"
-              onPress={() => toggleModal("genres")}
-            />
-          </View>
+          {!isLoading && (
+            <View style={styles.sortFilterContainer}>
+              <View style={styles.nbOfEventsContainer}>
+                <Text style={styles.nbOfEventsBold}>
+                  {eventsInfo.nbOfEvents}
+                </Text>
+                <Text style={styles.nbOfEvents}>événement(s) à venir</Text>
+              </View>
+              <Pressable
+                style={styles.sortFilter}
+                onPress={() => toggleModal("sort")}
+              >
+                <Text style={styles.sortFilterText}>Trier par</Text>
+                <IconButton icon="chevron-down" size={20} color="#fff" />
+              </Pressable>
+            </View>
+          )}
         </Animated.View>
       </View>
       {eventsInfo.events.length > 0 && (
@@ -353,9 +382,11 @@ export default function EventsScreen() {
         >
           <View style={styles.modal}>
             <View style={styles.closeIconContainer}>
-              <Text style={styles.modalText}>{`Filtrer par ${
-                modal.genres ? "genre(s)" : "date"
-              } :`}</Text>
+              <Text style={styles.modalText}>
+                {modal.sort
+                  ? "Trier par"
+                  : `Filtrer par ${modal.genres ? "genre(s)" : "date"} :`}
+              </Text>
               <IconButton
                 icon="close"
                 size={26}
@@ -363,7 +394,9 @@ export default function EventsScreen() {
                 onPress={
                   modal.genres
                     ? () => toggleModal("genres")
-                    : () => toggleModal("date")
+                    : modal.date
+                    ? () => toggleModal("date")
+                    : () => toggleModal("sort")
                 }
               />
             </View>
@@ -426,7 +459,55 @@ export default function EventsScreen() {
                   <Button text="Filtrer" onPress={onSubmitSearch} />
                 </View>
                 <View style={styles.resetButtonContainer}>
-                  <Button text="Réinitialiser" textColor={Colors.primary700} onPress={resetSelectedDate} />
+                  <Button
+                    text="Réinitialiser"
+                    textColor={Colors.primary700}
+                    onPress={resetSelectedDate}
+                  />
+                </View>
+              </>
+            )}
+            {modal.sort && (
+              <>
+                <RadioButton.Group
+                  onValueChange={(value) => setSortBy(value)}
+                  value={sortBy}
+                >
+                  <RadioButton.Item
+                    textStyle={styles.checkBoxText}
+                    value="ascPrice"
+                    label="Prix croissant"
+                    color={Colors.primary900}
+                    uncheckedColor="#111"
+                    status={sortBy === "ascPrice" ? "checked" : "unchecked"}
+                  />
+                  <RadioButton.Item
+                    textStyle={styles.checkBoxText}
+                    value="descPrice"
+                    label="Prix décroissant"
+                    color={Colors.primary900}
+                    uncheckedColor="#111"
+                    status={sortBy === "descPrice" ? "checked" : "unchecked"}
+                  />
+                  <RadioButton.Item
+                    textStyle={styles.checkBoxText}
+                    value="ascStartDate"
+                    label="Date croissante"
+                    color={Colors.primary900}
+                    uncheckedColor="#111"
+                    status={sortBy === "ascStartDate" ? "checked" : "unchecked"}
+                  />
+                  <RadioButton.Item
+                    textStyle={styles.checkBoxText}
+                    value="descStartDate"
+                    label="Date décroissante"
+                    color={Colors.primary900}
+                    uncheckedColor="#111"
+                    status={sortBy === "descStartDate" ? "checked" : "unchecked"}
+                  />
+                </RadioButton.Group>
+                <View style={styles.buttonContainer}>
+                  <Button text="Trier" onPress={onSubmitSearch} />
                 </View>
               </>
             )}
@@ -442,14 +523,35 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
+  sortFilterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    columnGap: 30,
+    marginVertical: 12,
+  },
+  sortFilter: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 2,
+  },
+  sortFilterText: {
+    fontFamily: "montserratRegular",
+    fontSize: 13,
+    color: "#fff",
+  },
+  nbOfEventsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 5,
+  },
   nbOfEvents: {
-    padding: 6,
     fontSize: 15,
     color: "#fff",
     fontFamily: "montserratRegular",
-    marginBottom: 10,
   },
   nbOfEventsBold: {
+    color: "#fff",
     fontSize: 18,
     fontFamily: "montserratBold",
   },
@@ -458,7 +560,6 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   eventsList: {
-    paddingTop: 180,
     paddingHorizontal: 15,
     paddingBottom: 70,
   },
@@ -493,17 +594,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     backgroundColor: Colors.primary700,
   },
-  searchBarContainer: {
+  stickyBar: {
     position: "absolute",
-    flexDirection: "row",
-    columnGap: 5,
     width: "100%",
-    paddingHorizontal: 10,
-    paddingVertical: 16,
+    paddingHorizontal: 12,
+    paddingTop: 16,
+    paddingBottom: 5,
     backgroundColor: "#232238",
-    borderBottomLeftRadius: 6,
-    borderBottomRightRadius: 6,
+    borderBottomLeftRadius: 8,
+    borderBottomRightRadius: 8,
   },
+  searchBarContainer: { flexDirection: "row", columnGap: 5, marginBottom: 10 },
   searchBar: {
     flexGrow: 1,
     columnGap: -5,
@@ -536,11 +637,11 @@ const styles = StyleSheet.create({
     fontFamily: "openSansBold",
     marginBottom: 10,
   },
-  checkBoxText: { fontFamily: "openSansRegular", fontSize: 15 },
+  checkBoxText: { color: "#111", fontFamily: "openSansRegular", fontSize: 15 },
   buttonContainer: {
-    marginTop: 15
+    marginTop: 15,
   },
   resetButtonContainer: {
-    marginTop: 4
-  }
+    marginTop: 4,
+  },
 });
