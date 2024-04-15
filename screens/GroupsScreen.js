@@ -4,6 +4,7 @@ import { AUTH_TOKEN } from "../globals";
 import { requestOptions } from "../helpers/requestOptions";
 import Colors from "../globals/colors";
 import jwt_decode from "jwt-decode";
+import { MIN_PARTICIPANTS, MAX_PARTICIPANTS } from "../globals";
 import { ActivityIndicator } from "react-native-paper";
 import Modal from "react-native-modal";
 import {
@@ -24,8 +25,6 @@ import IconButton from "../components/IconButton";
 export default function GroupsScreen({ route, navigation }) {
   const flatList = useRef();
   const eventInfo = route.params.data;
-  const minParticipants = 2;
-  const maxParticipants = 7;
   const [isLoading, setIsLoading] = useState(false);
   const [userInGroup, setUserInGroup] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -123,14 +122,17 @@ export default function GroupsScreen({ route, navigation }) {
 
   const handleInputChange = (field, value) => {
     if (field == "capacity") {
-      if (value === "add" && groupCreationInfo.capacity < maxParticipants) {
+      if (value === "add" && groupCreationInfo.capacity < MAX_PARTICIPANTS) {
         setGroupCreationInfo({
           ...groupCreationInfo,
           [field]: groupCreationInfo.capacity + 1,
         });
       }
 
-      if (value == "subtract" && groupCreationInfo.capacity > minParticipants) {
+      if (
+        value == "subtract" &&
+        groupCreationInfo.capacity > MIN_PARTICIPANTS
+      ) {
         setGroupCreationInfo({
           ...groupCreationInfo,
           [field]: groupCreationInfo.capacity - 1,
@@ -194,10 +196,14 @@ export default function GroupsScreen({ route, navigation }) {
   }, [navigation]);
 
   useEffect(() => {
-    if (!groupsInfo.isLastPage) {
-      fetchGroups();
-    }
-  }, []);
+    const fetch = navigation.addListener("focus", () => {
+      if (!groupsInfo.isLastPage) {
+        fetchGroups();
+      }
+    });
+
+    return fetch;
+  }, [navigation]);
 
   return (
     <View style={styles.groupsPage}>

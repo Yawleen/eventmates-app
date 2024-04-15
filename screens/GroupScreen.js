@@ -1,8 +1,12 @@
-import { useLayoutEffect } from "react";
 import moment from "moment";
 import "moment/locale/fr";
 import Colors from "../globals/colors";
-import { SCREEN_EVENT } from "../globals";
+import { AUTH_TOKEN, SCREEN_EVENT } from "../globals";
+import { useState, useLayoutEffect, useEffect } from "react";
+import jwt_decode from "jwt-decode";
+import { getValueFor } from "../helpers/secureStore";
+import { requestOptions } from "../helpers/requestOptions";
+import { MAX_PARTICIPANTS } from "../globals";
 import {
   StyleSheet,
   Text,
@@ -10,21 +14,125 @@ import {
   Image,
   ScrollView,
   Pressable,
+  TextInput,
+  Alert,
 } from "react-native";
 import IconButton from "../components/IconButton";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Button from "../components/Button";
+import Modal from "react-native-modal";
+import QuantitySelector from "../components/QuantitySelector";
 
 export default function GroupScreen({ route, navigation }) {
   const groupInfo = route.params.data;
+  const minParticipants = groupInfo.users.length;
+  const [isUserGroup, setIsUserGroup] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [inputsValues, setInputsValues] = useState({
+    name: groupInfo.name,
+    description: groupInfo.description,
+    capacity: groupInfo.maxCapacity,
+  });
+  const [groupUpdateInfo, setGroupUpdateInfo] = useState({
+    name: groupInfo.name,
+    description: groupInfo.description,
+    capacity: groupInfo.maxCapacity,
+  });
 
   const redirectToEvent = () =>
     navigation.navigate(SCREEN_EVENT, { data: groupInfo.event });
 
+  const checkUserGroup = async () => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      const decodedToken = await jwt_decode(token);
+      if (decodedToken.userId === groupInfo.creator._id) {
+        setIsUserGroup(true);
+        return;
+      }
+
+      setIsUserGroup(false);
+    }
+  };
+
+  const toggleModal = () => setShowModal(!showModal);
+
+  const updateGroup = async (updateInfo) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      try {
+        const decodedToken = await jwt_decode(token);
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
+          requestOptions("PUT", token, {
+            ...updateInfo,
+            userId: decodedToken.userId,
+            eventId: groupInfo.event._id,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            setShowModal(false);
+            setGroupUpdateInfo({
+              name: data.updatedGroup.name,
+              description: data.updatedGroup.description,
+              capacity: data.updatedGroup.maxCapacity,
+            });
+            Alert.alert(data.message);
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+    }
+  };
+
+  const handleInputChange = (field, value) => {
+    if (field == "capacity") {
+      if (value === "add" && inputsValues.capacity < MAX_PARTICIPANTS) {
+        setInputsValues({
+          ...inputsValues,
+          [field]: inputsValues.capacity + 1,
+        });
+      }
+
+      if (value == "subtract" && inputsValues.capacity > minParticipants) {
+        setInputsValues({
+          ...inputsValues,
+          [field]: inputsValues.capacity - 1,
+        });
+      }
+      return;
+    }
+
+    setInputsValues({ ...inputsValues, [field]: value });
+  };
+
+  const handleSubmit = () => {
+    if (!Object.values(inputsValues).every((inputValue) => inputValue !== "")) {
+      Alert.alert("Erreur", "Tous les champs doivent être remplis.");
+      return;
+    }
+
+    const groupData = {
+      name: inputsValues.name.trim(),
+      description: inputsValues.description.trim(),
+      maxCapacity: inputsValues.capacity,
+    };
+
+    updateGroup(groupData);
+  };
+
+  useEffect(() => {
+    checkUserGroup();
+  }, []);
+
   useLayoutEffect(() => {
     navigation.setOptions({
-      title: `Groupe ${groupInfo.name}`,
+      title: `Groupe ${groupUpdateInfo.name}`,
     });
-  }, [navigation, groupInfo.name]);
+  }, [navigation, groupUpdateInfo.name]);
 
   return (
     <View style={styles.groupPage}>
@@ -55,13 +163,14 @@ export default function GroupScreen({ route, navigation }) {
           </View>
         </Pressable>
         <Text style={styles.infoTextBold}>
-          Membres du groupe ({groupInfo.users.length}/{groupInfo.maxCapacity})
+          Membres du groupe ({groupInfo.users.length}/{groupUpdateInfo.capacity}
+          )
         </Text>
         <View style={styles.membersContainer}>
           <View style={styles.members}>
             <MaterialCommunityIcons name="account" size={18} color="#fff" />
             <Text style={styles.memberName}>
-              {groupInfo.creator.username} (Créateur)
+              {isUserGroup ? "Toi" : groupInfo.creator.username} (Créateur)
             </Text>
           </View>
           {groupInfo.users.slice(1).map((user) => (
@@ -72,7 +181,75 @@ export default function GroupScreen({ route, navigation }) {
           ))}
         </View>
         <Text style={styles.infoTextBold}>Description du groupe</Text>
-        <Text style={styles.infoText}>{groupInfo.description}</Text>
+        <Text style={styles.infoText}>{groupUpdateInfo.description}</Text>
+        <View style={styles.buttonContainer}>
+          {isUserGroup && (
+            <Button
+              text="Éditer ton groupe"
+              isBold={true}
+              backgroundColor={Colors.primary700}
+              onPress={toggleModal}
+            />
+          )}
+        </View>
+        {showModal && (
+          <Modal
+            isVisible={showModal}
+            backdropColor="#111"
+            backdropOpacity={0.6}
+            onBackdropPress={toggleModal}
+            hideModalContentWhileAnimating={true}
+          >
+            <View style={styles.modal}>
+              <View style={styles.closeIconContainer}>
+                <Text style={styles.modalText}>Modification du groupe</Text>
+                <IconButton
+                  icon="close"
+                  size={26}
+                  color="#111"
+                  onPress={toggleModal}
+                />
+              </View>
+              <ScrollView>
+                <Text style={styles.label}>Nom du groupe</Text>
+                <TextInput
+                  style={styles.input}
+                  onChangeText={(value) => handleInputChange("name", value)}
+                  value={inputsValues.name}
+                  returnKeyType="go"
+                />
+                <Text style={styles.label}>Description</Text>
+                <TextInput
+                  style={styles.input}
+                  multiline={true}
+                  numberOfLines={8}
+                  onChangeText={(value) =>
+                    handleInputChange("description", value)
+                  }
+                  value={inputsValues.description}
+                  returnKeyType="go"
+                />
+                <Text style={styles.label}>Nombre total de participants</Text>
+                <View style={styles.selectorsContainer}>
+                  <QuantitySelector
+                    sign="minus"
+                    onPress={() => handleInputChange("capacity", "subtract")}
+                  />
+                  <Text style={styles.capacityText}>
+                    {inputsValues.capacity}
+                  </Text>
+                  <QuantitySelector
+                    sign="plus"
+                    onPress={() => handleInputChange("capacity", "add")}
+                  />
+                </View>
+                <View>
+                  <Button text="Valider" onPress={handleSubmit} />
+                </View>
+              </ScrollView>
+            </View>
+          </Modal>
+        )}
       </ScrollView>
     </View>
   );
@@ -102,7 +279,7 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
     borderColor: Colors.primary700,
     borderRadius: 20,
-    marginBottom: 90,
+    marginBottom: 80,
     overflow: "hidden",
   },
   eventImage: {
@@ -160,5 +337,52 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontFamily: "openSansRegular",
     fontSize: 15,
+  },
+  buttonContainer: {
+    rowGap: 5,
+    marginTop: 30,
+  },
+  modal: {
+    backgroundColor: "#fff",
+    padding: 30,
+    borderRadius: 20,
+  },
+  closeIconContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 15,
+  },
+  modalText: {
+    fontSize: 15,
+    fontFamily: "openSansBold",
+    marginBottom: 10,
+  },
+  input: {
+    fontFamily: "openSansRegular",
+    borderRadius: 10,
+    height: 50,
+    borderColor: "#111",
+    color: Colors.textColor,
+    borderWidth: 1,
+    paddingLeft: 10,
+    marginBottom: 25,
+    overflow: "hidden",
+  },
+  selectorsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 15,
+    alignSelf: "center",
+    marginBottom: 40,
+  },
+  capacityText: {
+    fontFamily: "openSansBold",
+    fontSize: 16,
+  },
+  label: {
+    fontFamily: "openSansBold",
+    color: Colors.textColor,
+    fontSize: 14,
+    marginBottom: 8,
   },
 });
