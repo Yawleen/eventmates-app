@@ -50,10 +50,8 @@ export default function EventScreen({ isUserEvent, setIsUserEvent }) {
     if (token) {
       setIsLoading(true);
       try {
-        const decodedToken = await jwt_decode(token);
-
         fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?userId=${decodedToken.userId}&eventId=${eventId}`,
+          `${process.env.EXPO_PUBLIC_API_URL}/is-an-user-event?eventId=${eventId}`,
           requestOptions("GET", token)
         ).then((response) =>
           response.json().then((data) => setIsUserEvent(data.isParticipant))
