@@ -184,12 +184,9 @@ export default function GroupsScreen({ route, navigation }) {
   const onPressFunction = () =>
     flatList.current.scrollToOffset({ animated: true, offset: 0 });
 
-  useLayoutEffect(() => {
-    isUserInAGroup(eventInfo._id);
-  }, [navigation]);
-
   useEffect(() => {
     const fetch = navigation.addListener("focus", () => {
+      isUserInAGroup(eventInfo._id);
       if (!groupsInfo.isLastPage) {
         fetchGroups();
       }
