@@ -27,7 +27,7 @@ export default function GroupScreen({ route, navigation }) {
   const groupInfo = route.params.data;
   const minParticipants = groupInfo.users.length;
   const [isUserGroup, setIsUserGroup] = useState(false);
-  const [showModal, setShowModal] = useState(false);
+  const [showModal, setShowModal] = useState({ edit: false, delete: false });
   const [inputsValues, setInputsValues] = useState({
     name: groupInfo.name,
     description: groupInfo.description,
@@ -56,7 +56,14 @@ export default function GroupScreen({ route, navigation }) {
     }
   };
 
-  const toggleModal = () => setShowModal(!showModal);
+  const toggleModal = (option) => {
+    if (option) {
+      setShowModal({ ...showModal, [option]: !showModal[option] });
+      return;
+    }
+
+    setShowModal({ edit: false, delete: false });
+  };
 
   const updateGroup = async (updateInfo) => {
     const token = await getValueFor(AUTH_TOKEN);
@@ -71,13 +78,36 @@ export default function GroupScreen({ route, navigation }) {
           })
         ).then((response) => {
           response.json().then((data) => {
-            setShowModal(false);
+            toggleModal();
             setGroupUpdateInfo({
               name: data.updatedGroup.name,
               description: data.updatedGroup.description,
               capacity: data.updatedGroup.maxCapacity,
             });
             Alert.alert(data.message);
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+    }
+  };
+
+  const deleteGroup = async () => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      try {
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
+          requestOptions("DELETE", token, {
+            eventId: groupInfo.event._id,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            toggleModal();
+            Alert.alert(data.message);
+            navigation.goBack();
           });
         });
       } catch (error) {
@@ -182,69 +212,109 @@ export default function GroupScreen({ route, navigation }) {
         <Text style={styles.infoText}>{groupUpdateInfo.description}</Text>
         <View style={styles.buttonContainer}>
           {isUserGroup && (
-            <Button
-              text="Éditer ton groupe"
-              isBold={true}
-              backgroundColor={Colors.primary700}
-              onPress={toggleModal}
-            />
+            <>
+              <Button
+                text="Éditer ton groupe"
+                isBold={true}
+                backgroundColor={Colors.primary700}
+                onPress={() => toggleModal("edit")}
+              />
+              <Button
+                text="Supprimer ton groupe"
+                isBold={true}
+                backgroundColor={Colors.primary900}
+                onPress={() => toggleModal("delete")}
+              />
+            </>
           )}
         </View>
-        {showModal && (
+        {Object.values(showModal).includes(true) && (
           <Modal
-            isVisible={showModal}
+            isVisible={true}
             backdropColor="#111"
             backdropOpacity={0.6}
-            onBackdropPress={toggleModal}
+            onBackdropPress={() => toggleModal()}
             hideModalContentWhileAnimating={true}
           >
             <View style={styles.modal}>
               <View style={styles.closeIconContainer}>
-                <Text style={styles.modalText}>Modification du groupe</Text>
+                <Text style={styles.modalText}>
+                  {showModal.edit
+                    ? "Modification du groupe"
+                    : "Suppression du groupe"}
+                </Text>
                 <IconButton
                   icon="close"
                   size={26}
                   color="#111"
-                  onPress={toggleModal}
+                  onPress={() => toggleModal()}
                 />
               </View>
-              <ScrollView>
-                <Text style={styles.label}>Nom du groupe</Text>
-                <TextInput
-                  style={styles.input}
-                  onChangeText={(value) => handleInputChange("name", value)}
-                  value={inputsValues.name}
-                  returnKeyType="go"
-                />
-                <Text style={styles.label}>Description</Text>
-                <TextInput
-                  style={styles.input}
-                  multiline={true}
-                  numberOfLines={8}
-                  onChangeText={(value) =>
-                    handleInputChange("description", value)
-                  }
-                  value={inputsValues.description}
-                  returnKeyType="go"
-                />
-                <Text style={styles.label}>Nombre total de participants</Text>
-                <View style={styles.selectorsContainer}>
-                  <QuantitySelector
-                    sign="minus"
-                    onPress={() => handleInputChange("capacity", "subtract")}
+              {showModal.edit ? (
+                <ScrollView>
+                  <Text style={styles.label}>Nom du groupe</Text>
+                  <TextInput
+                    style={styles.input}
+                    onChangeText={(value) => handleInputChange("name", value)}
+                    value={inputsValues.name}
+                    returnKeyType="go"
                   />
-                  <Text style={styles.capacityText}>
-                    {inputsValues.capacity}
+                  <Text style={styles.label}>Description</Text>
+                  <TextInput
+                    style={styles.input}
+                    multiline={true}
+                    numberOfLines={8}
+                    onChangeText={(value) =>
+                      handleInputChange("description", value)
+                    }
+                    value={inputsValues.description}
+                    returnKeyType="go"
+                  />
+                  <Text style={styles.label}>Nombre total de participants</Text>
+                  <View style={styles.selectorsContainer}>
+                    <QuantitySelector
+                      sign="minus"
+                      onPress={() => handleInputChange("capacity", "subtract")}
+                    />
+                    <Text style={styles.capacityText}>
+                      {inputsValues.capacity}
+                    </Text>
+                    <QuantitySelector
+                      sign="plus"
+                      onPress={() => handleInputChange("capacity", "add")}
+                    />
+                  </View>
+                  <View>
+                    <Button text="Valider" onPress={handleSubmit} />
+                  </View>
+                </ScrollView>
+              ) : (
+                <>
+                  <Text style={styles.deleteText}>
+                    Es-tu sûr(e) de vouloir supprimer ton groupe ?
                   </Text>
-                  <QuantitySelector
-                    sign="plus"
-                    onPress={() => handleInputChange("capacity", "add")}
-                  />
-                </View>
-                <View>
-                  <Button text="Valider" onPress={handleSubmit} />
-                </View>
-              </ScrollView>
+                  <View style={styles.optionsContainer}>
+                    <View style={styles.optionButton}>
+                      <Button
+                        text="Oui"
+                        height={40}
+                        isBold={true}
+                        backgroundColor={Colors.primary900}
+                        onPress={deleteGroup}
+                      />
+                    </View>
+                    <View style={styles.optionButton}>
+                      <Button
+                        text="Non"
+                        height={40}
+                        isBold={true}
+                        backgroundColor={Colors.primary700}
+                        onPress={() => toggleModal()}
+                      />
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
           </Modal>
         )}
@@ -283,6 +353,9 @@ const styles = StyleSheet.create({
   eventImage: {
     flexShrink: 0,
     width: "35%",
+  },
+  eventInfo: {
+    flex: 1,
   },
   image: {
     height: "100%",
@@ -382,5 +455,20 @@ const styles = StyleSheet.create({
     color: Colors.textColor,
     fontSize: 14,
     marginBottom: 8,
+  },
+  deleteText: {
+    fontFamily: "openSansBold",
+    color: Colors.textColor,
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: 30,
+  },
+  optionsContainer: {
+    flexDirection: "row",
+    columnGap: 8,
+    justifyContent: "center",
+  },
+  optionButton: {
+    flex: 1,
   },
 });
