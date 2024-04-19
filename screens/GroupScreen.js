@@ -138,7 +138,7 @@ export default function GroupScreen({ route, navigation }) {
   };
 
   const handleSubmit = () => {
-    if (!Object.values(inputsValues).every((inputValue) => inputValue !== "")) {
+    if (!Object.values(inputsValues).every((inputValue) => inputValue.trim() !== "")) {
       Alert.alert("Erreur", "Tous les champs doivent être remplis.");
       return;
     }
