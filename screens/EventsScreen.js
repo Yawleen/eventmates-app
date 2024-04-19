@@ -190,18 +190,8 @@ export default function EventsScreen() {
   const setKeyExtractor = (item) => item._id;
 
   const toggleModal = (filter) => {
-    if (filter === "date") {
-      setModal({ date: !modal.date, genres: false, sort: false });
-      return;
-    }
-
-    if (filter === "genres") {
-      setModal({ date: false, genres: !modal.genres, sort: false });
-      return;
-    }
-
-    if (filter === "sort") {
-      setModal({ date: false, genres: false, sort: !modal.sort });
+    if (filter) {
+      setModal({ ...modal, [filter]: !modal[filter] });
       return;
     }
 
@@ -279,7 +269,10 @@ export default function EventsScreen() {
       <View style={styles.eventListContainer}>
         <Animated.FlatList
           onScroll={onScroll}
-          contentContainerStyle={[styles.eventsList, { paddingTop: isLoading ? 200 : 240 }]}
+          contentContainerStyle={[
+            styles.eventsList,
+            { paddingTop: isLoading ? 200 : 240 },
+          ]}
           scrollIndicatorInsets={{
             top: scrollIndicatorInsetTop + stickyHeaderHeight,
           }}
@@ -374,7 +367,7 @@ export default function EventsScreen() {
       )}
       {Object.values(modal).includes(true) && (
         <Modal
-          isVisible={Object.values(modal).includes(true)}
+          isVisible={true}
           backdropColor="#111"
           backdropOpacity={0.6}
           onBackdropPress={() => toggleModal()}
@@ -503,7 +496,9 @@ export default function EventsScreen() {
                     label="Date décroissante"
                     color={Colors.primary900}
                     uncheckedColor="#111"
-                    status={sortBy === "descStartDate" ? "checked" : "unchecked"}
+                    status={
+                      sortBy === "descStartDate" ? "checked" : "unchecked"
+                    }
                   />
                 </RadioButton.Group>
                 <View style={styles.buttonContainer}>
