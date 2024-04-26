@@ -138,7 +138,11 @@ export default function GroupScreen({ route, navigation }) {
   };
 
   const handleSubmit = () => {
-    if (!Object.values(inputsValues).every((inputValue) => inputValue.trim() !== "")) {
+    if (
+      !Object.values(inputsValues).every(
+        (inputValue) => inputValue.toString().trim() !== ""
+      )
+    ) {
       Alert.alert("Erreur", "Tous les champs doivent être remplis.");
       return;
     }
@@ -205,6 +209,16 @@ export default function GroupScreen({ route, navigation }) {
             <View key={user._id} style={styles.members}>
               <MaterialCommunityIcons name="account" size={18} color="#fff" />
               <Text style={styles.memberName}>{user.username}</Text>
+              {isUserGroup && (
+                <View style={styles.kickIcon}>
+                  <IconButton
+                    icon="account-minus"
+                    size={20}
+                    color="#fff"
+                    onPress={() => console.log("exclure")}
+                  />
+                </View>
+              )}
             </View>
           ))}
         </View>
@@ -402,6 +416,7 @@ const styles = StyleSheet.create({
   members: {
     flexDirection: "row",
     justifyContent: "center",
+    alignItems: "center",
     columnGap: 6,
   },
   memberName: {
@@ -470,5 +485,13 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     flex: 1,
+  },
+  kickIcon: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 30,
+    height: 30,
+    borderRadius: 5,
+    backgroundColor: Colors.primary900,
   },
 });

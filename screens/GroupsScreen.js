@@ -98,8 +98,9 @@ export default function GroupsScreen({ route, navigation }) {
   };
 
   const handleSubmit = () => {
+    console.log(groupCreationInfo);
     if (
-      !Object.values(groupCreationInfo).every((inputValue) => inputValue.trim() !== "")
+      !Object.values(groupCreationInfo).every((inputValue) => inputValue.toString().trim() !== "")
     ) {
       Alert.alert("Erreur", "Tous les champs doivent être remplis.");
       return;
