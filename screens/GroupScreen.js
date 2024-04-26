@@ -2,7 +2,7 @@ import moment from "moment";
 import "moment/locale/fr";
 import Colors from "../globals/colors";
 import { AUTH_TOKEN, SCREEN_EVENT } from "../globals";
-import { useState, useLayoutEffect } from "react";
+import { useState, useLayoutEffect, useEffect } from "react";
 import jwt_decode from "jwt-decode";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
@@ -32,10 +32,12 @@ export default function GroupScreen({ route, navigation }) {
     edit: false,
     delete: false,
     kick: false,
+    ban: false
   });
   const [inputsValues, setInputsValues] = useState({});
   const [groupUpdateInfo, setGroupUpdateInfo] = useState({});
   const [userToKick, setUserToKick] = useState({ username: "", id: "" });
+  const [userToBan, setUserToBan] = useState({ username: "", id: "" });
   const [isLoading, setIsLoading] = useState(false);
 
   const redirectToEvent = () =>
@@ -47,7 +49,7 @@ export default function GroupScreen({ route, navigation }) {
       return;
     }
 
-    setShowModal({ edit: false, delete: false, kick: false });
+    setShowModal({ edit: false, delete: false, kick: false, ban: false });
   };
 
   const updateGroup = async (updateInfo) => {
@@ -165,6 +167,30 @@ export default function GroupScreen({ route, navigation }) {
     }
   };
 
+  const banUser = async (userToBanId) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      try {
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/ban-user`,
+          requestOptions("POST", token, {
+            eventId: eventId,
+            userToBanId: userToBanId,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            toggleModal();
+            setUserToBan({ username: "", id: "" });
+            Alert.alert(data.message);
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+    }
+  };
+
   const handleInputChange = (field, value) => {
     if (field == "capacity") {
       if (value === "add" && inputsValues.capacity < MAX_PARTICIPANTS) {
@@ -208,11 +234,11 @@ export default function GroupScreen({ route, navigation }) {
     updateGroup(groupData);
   };
 
-  useLayoutEffect(() => {
-    if (userToKick.username === "") {
+  useEffect(() => {
+    if (userToKick.username === "" || userToBan.username === "") {
       fetchEventGroupInfo(eventId);
     }
-  }, [userToKick]);
+  }, [userToKick, userToBan]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -273,20 +299,36 @@ export default function GroupScreen({ route, navigation }) {
                 <MaterialCommunityIcons name="account" size={18} color="#fff" />
                 <Text style={styles.memberName}>{user.username}</Text>
                 {isUserGroup && (
-                  <View style={styles.kickIcon}>
-                    <IconButton
-                      icon="account-minus"
-                      size={20}
-                      color="#fff"
-                      onPress={() => {
-                        setUserToKick({
-                          username: user.username,
-                          id: user._id,
-                        });
-                        toggleModal("kick");
-                      }}
-                    />
-                  </View>
+                  <>
+                    <View style={styles.kickIcon}>
+                      <IconButton
+                        icon="account-minus"
+                        size={20}
+                        color="#fff"
+                        onPress={() => {
+                          setUserToKick({
+                            username: user.username,
+                            id: user._id,
+                          });
+                          toggleModal("kick");
+                        }}
+                      />
+                    </View>
+                    <View style={styles.kickIcon}>
+                      <IconButton
+                        icon="account-cancel"
+                        size={20}
+                        color="#fff"
+                        onPress={() => {
+                          setUserToBan({
+                            username: user.username,
+                            id: user._id,
+                          });
+                          toggleModal("ban");
+                        }}
+                      />
+                    </View>       
+                  </>
                 )}
               </View>
             ))}
@@ -325,6 +367,7 @@ export default function GroupScreen({ route, navigation }) {
                     {showModal.edit && "Modification du groupe"}
                     {showModal.delete && "Suppression du groupe"}
                     {showModal.kick && "Exclusion du groupe"}
+                    {showModal.ban && "Bannissement du groupe"}
                   </Text>
                   <IconButton
                     icon="close"
@@ -417,6 +460,34 @@ export default function GroupScreen({ route, navigation }) {
                           isBold={true}
                           backgroundColor={Colors.primary900}
                           onPress={() => kickUser(userToKick.id)}
+                        />
+                      </View>
+                      <View style={styles.optionButton}>
+                        <Button
+                          text="Non"
+                          height={40}
+                          isBold={true}
+                          backgroundColor={Colors.primary700}
+                          onPress={() => toggleModal()}
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
+                {showModal.ban && (
+                  <>
+                    <Text style={styles.deleteText}>
+                      Es-tu sûr(e) de vouloir bannir {userToBan.username} de
+                      ton groupe ?
+                    </Text>
+                    <View style={styles.optionsContainer}>
+                      <View style={styles.optionButton}>
+                        <Button
+                          text="Oui"
+                          height={40}
+                          isBold={true}
+                          backgroundColor={Colors.primary900}
+                          onPress={() => banUser(userToBan.id)}
                         />
                       </View>
                       <View style={styles.optionButton}>
