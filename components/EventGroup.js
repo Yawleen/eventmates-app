@@ -26,7 +26,7 @@ export default function EventGroup({ groupInfo }) {
   };
 
   const redirectToGroup = () =>
-    navigation.navigate(SCREEN_GROUP, { data: groupInfo });
+    navigation.navigate(SCREEN_GROUP, { data: groupInfo.event._id });
 
   useEffect(() => {
     checkUserGroup();

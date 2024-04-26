@@ -98,7 +98,6 @@ export default function GroupsScreen({ route, navigation }) {
   };
 
   const handleSubmit = () => {
-    console.log(groupCreationInfo);
     if (
       !Object.values(groupCreationInfo).every((inputValue) => inputValue.toString().trim() !== "")
     ) {

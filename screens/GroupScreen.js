@@ -2,7 +2,7 @@ import moment from "moment";
 import "moment/locale/fr";
 import Colors from "../globals/colors";
 import { AUTH_TOKEN, SCREEN_EVENT } from "../globals";
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useState, useLayoutEffect } from "react";
 import jwt_decode from "jwt-decode";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
@@ -22,39 +22,24 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import Button from "../components/Button";
 import Modal from "react-native-modal";
 import QuantitySelector from "../components/QuantitySelector";
+import { ActivityIndicator } from "react-native-paper";
 
 export default function GroupScreen({ route, navigation }) {
-  const groupInfo = route.params.data;
-  const minParticipants = groupInfo.users.length;
+  const eventId = route.params.data;
+  const [groupInfo, setGroupInfo] = useState({});
   const [isUserGroup, setIsUserGroup] = useState(false);
-  const [showModal, setShowModal] = useState({ edit: false, delete: false });
-  const [inputsValues, setInputsValues] = useState({
-    name: groupInfo.name,
-    description: groupInfo.description,
-    capacity: groupInfo.maxCapacity,
+  const [showModal, setShowModal] = useState({
+    edit: false,
+    delete: false,
+    kick: false,
   });
-  const [groupUpdateInfo, setGroupUpdateInfo] = useState({
-    name: groupInfo.name,
-    description: groupInfo.description,
-    capacity: groupInfo.maxCapacity,
-  });
+  const [inputsValues, setInputsValues] = useState({});
+  const [groupUpdateInfo, setGroupUpdateInfo] = useState({});
+  const [userToKick, setUserToKick] = useState({ username: "", id: "" });
+  const [isLoading, setIsLoading] = useState(false);
 
   const redirectToEvent = () =>
-    navigation.navigate(SCREEN_EVENT, { data: groupInfo.event });
-
-  const checkUserGroup = async () => {
-    const token = await getValueFor(AUTH_TOKEN);
-
-    if (token) {
-      const decodedToken = await jwt_decode(token);
-      if (decodedToken.userId === groupInfo.creator._id) {
-        setIsUserGroup(true);
-        return;
-      }
-
-      setIsUserGroup(false);
-    }
-  };
+    navigation.navigate(SCREEN_EVENT, { data: groupInfo?.event });
 
   const toggleModal = (option) => {
     if (option) {
@@ -62,7 +47,7 @@ export default function GroupScreen({ route, navigation }) {
       return;
     }
 
-    setShowModal({ edit: false, delete: false });
+    setShowModal({ edit: false, delete: false, kick: false });
   };
 
   const updateGroup = async (updateInfo) => {
@@ -74,7 +59,7 @@ export default function GroupScreen({ route, navigation }) {
           `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
           requestOptions("PUT", token, {
             ...updateInfo,
-            eventId: groupInfo.event._id,
+            eventId: eventId,
           })
         ).then((response) => {
           response.json().then((data) => {
@@ -93,6 +78,46 @@ export default function GroupScreen({ route, navigation }) {
     }
   };
 
+  const fetchEventGroupInfo = async (eventId) => {
+    const token = await getValueFor(AUTH_TOKEN);
+    const decodedToken = await jwt_decode(token);
+
+    if (token) {
+      setIsLoading(true);
+
+      try {
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/event-group?eventId=${eventId}`,
+          requestOptions("GET", token)
+        ).then((response) => {
+          response.json().then((data) => {
+            setIsLoading(false);
+            setGroupInfo(data.groupInfo);
+            setInputsValues({
+              name: data.groupInfo.name,
+              description: data.groupInfo.description,
+              capacity: data.groupInfo.maxCapacity,
+            });
+            setGroupUpdateInfo({
+              name: data.groupInfo.name,
+              description: data.groupInfo.description,
+              capacity: data.groupInfo.maxCapacity,
+            });
+            if (decodedToken.userId === data.groupInfo.creator._id) {
+              setIsUserGroup(true);
+              return;
+            }
+
+            setIsUserGroup(false);
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+        setIsLoading(false);
+      }
+    }
+  };
+
   const deleteGroup = async () => {
     const token = await getValueFor(AUTH_TOKEN);
 
@@ -101,13 +126,37 @@ export default function GroupScreen({ route, navigation }) {
         await fetch(
           `${process.env.EXPO_PUBLIC_API_URL}/event-groups`,
           requestOptions("DELETE", token, {
-            eventId: groupInfo.event._id,
+            eventId: eventId,
           })
         ).then((response) => {
           response.json().then((data) => {
             toggleModal();
             Alert.alert(data.message);
             navigation.goBack();
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+    }
+  };
+
+  const kickUser = async (userToKickId) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      try {
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/kick-user`,
+          requestOptions("POST", token, {
+            eventId: eventId,
+            userToKickId: userToKickId,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            toggleModal();
+            setUserToKick({ username: "", id: "" });
+            Alert.alert(data.message);
           });
         });
       } catch (error) {
@@ -125,7 +174,10 @@ export default function GroupScreen({ route, navigation }) {
         });
       }
 
-      if (value == "subtract" && inputsValues.capacity > minParticipants) {
+      if (
+        value == "subtract" &&
+        inputsValues.capacity > groupInfo?.users?.length
+      ) {
         setInputsValues({
           ...inputsValues,
           [field]: inputsValues.capacity - 1,
@@ -156,9 +208,11 @@ export default function GroupScreen({ route, navigation }) {
     updateGroup(groupData);
   };
 
-  useEffect(() => {
-    checkUserGroup();
-  }, []);
+  useLayoutEffect(() => {
+    if (userToKick.username === "") {
+      fetchEventGroupInfo(eventId);
+    }
+  }, [userToKick]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -168,176 +222,230 @@ export default function GroupScreen({ route, navigation }) {
 
   return (
     <View style={styles.groupPage}>
-      <ScrollView>
-        <Text style={styles.infoTextBold}>Événement sélectionné</Text>
-        <Pressable onPress={redirectToEvent} style={styles.groupEvent}>
-          <View style={styles.eventImage}>
-            <Image
-              style={styles.image}
-              source={{ uri: groupInfo.event.media.url }}
-            />
-          </View>
-          <View style={styles.eventInfo}>
-            <Text style={styles.eventName}>{groupInfo.event.name}</Text>
-            <Text style={styles.eventDate}>
-              Le{" "}
-              {moment(groupInfo.event.dates.start.localDate).format(
-                "DD/MM/YYYY"
-              )}{" "}
-              à {groupInfo.event.dates.start.localTime.substring(0, 5)}
-            </Text>
-            <View style={styles.address}>
-              <IconButton icon="map-marker-outline" size={20} color="#111" />
-              <Text style={styles.addressText}>
-                {groupInfo.event.address.split(",")[0]}
+      {isLoading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator
+            style={styles.loader}
+            size="large"
+            color={Colors.primary900}
+          />
+        </View>
+      ) : (
+        <ScrollView>
+          <Text style={styles.infoTextBold}>Événement sélectionné</Text>
+          <Pressable onPress={redirectToEvent} style={styles.groupEvent}>
+            <View style={styles.eventImage}>
+              <Image
+                style={styles.image}
+                source={{ uri: groupInfo?.event?.media?.url }}
+              />
+            </View>
+            <View style={styles.eventInfo}>
+              <Text style={styles.eventName}>{groupInfo?.event?.name}</Text>
+              <Text style={styles.eventDate}>
+                Le{" "}
+                {moment(groupInfo?.event?.dates?.start?.localDate).format(
+                  "DD/MM/YYYY"
+                )}{" "}
+                à {groupInfo?.event?.dates?.start?.localTime.substring(0, 5)}
+              </Text>
+              <View style={styles.address}>
+                <IconButton icon="map-marker-outline" size={20} color="#111" />
+                <Text style={styles.addressText}>
+                  {groupInfo?.event?.address.split(",")[0]}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+          <Text style={styles.infoTextBold}>
+            Membres du groupe ({groupInfo?.users?.length}/
+            {groupUpdateInfo.capacity})
+          </Text>
+          <View style={styles.membersContainer}>
+            <View style={styles.members}>
+              <MaterialCommunityIcons name="account" size={18} color="#fff" />
+              <Text style={styles.memberName}>
+                {isUserGroup ? "Toi" : groupInfo?.creator?.username} (Créateur)
               </Text>
             </View>
+            {groupInfo?.users?.slice(1).map((user) => (
+              <View key={user._id} style={styles.members}>
+                <MaterialCommunityIcons name="account" size={18} color="#fff" />
+                <Text style={styles.memberName}>{user.username}</Text>
+                {isUserGroup && (
+                  <View style={styles.kickIcon}>
+                    <IconButton
+                      icon="account-minus"
+                      size={20}
+                      color="#fff"
+                      onPress={() => {
+                        setUserToKick({
+                          username: user.username,
+                          id: user._id,
+                        });
+                        toggleModal("kick");
+                      }}
+                    />
+                  </View>
+                )}
+              </View>
+            ))}
           </View>
-        </Pressable>
-        <Text style={styles.infoTextBold}>
-          Membres du groupe ({groupInfo.users.length}/{groupUpdateInfo.capacity}
-          )
-        </Text>
-        <View style={styles.membersContainer}>
-          <View style={styles.members}>
-            <MaterialCommunityIcons name="account" size={18} color="#fff" />
-            <Text style={styles.memberName}>
-              {isUserGroup ? "Toi" : groupInfo.creator.username} (Créateur)
-            </Text>
+          <Text style={styles.infoTextBold}>Description du groupe</Text>
+          <Text style={styles.infoText}>{groupUpdateInfo.description}</Text>
+          <View style={styles.buttonContainer}>
+            {isUserGroup && (
+              <>
+                <Button
+                  text="Éditer ton groupe"
+                  isBold={true}
+                  backgroundColor={Colors.primary700}
+                  onPress={() => toggleModal("edit")}
+                />
+                <Button
+                  text="Supprimer ton groupe"
+                  isBold={true}
+                  backgroundColor={Colors.primary900}
+                  onPress={() => toggleModal("delete")}
+                />
+              </>
+            )}
           </View>
-          {groupInfo.users.slice(1).map((user) => (
-            <View key={user._id} style={styles.members}>
-              <MaterialCommunityIcons name="account" size={18} color="#fff" />
-              <Text style={styles.memberName}>{user.username}</Text>
-              {isUserGroup && (
-                <View style={styles.kickIcon}>
+          {Object.values(showModal).includes(true) && (
+            <Modal
+              isVisible={true}
+              backdropColor="#111"
+              backdropOpacity={0.6}
+              onBackdropPress={() => toggleModal()}
+              hideModalContentWhileAnimating={true}
+            >
+              <View style={styles.modal}>
+                <View style={styles.closeIconContainer}>
+                  <Text style={styles.modalText}>
+                    {showModal.edit && "Modification du groupe"}
+                    {showModal.delete && "Suppression du groupe"}
+                    {showModal.kick && "Exclusion du groupe"}
+                  </Text>
                   <IconButton
-                    icon="account-minus"
-                    size={20}
-                    color="#fff"
-                    onPress={() => console.log("exclure")}
+                    icon="close"
+                    size={26}
+                    color="#111"
+                    onPress={() => toggleModal()}
                   />
                 </View>
-              )}
-            </View>
-          ))}
-        </View>
-        <Text style={styles.infoTextBold}>Description du groupe</Text>
-        <Text style={styles.infoText}>{groupUpdateInfo.description}</Text>
-        <View style={styles.buttonContainer}>
-          {isUserGroup && (
-            <>
-              <Button
-                text="Éditer ton groupe"
-                isBold={true}
-                backgroundColor={Colors.primary700}
-                onPress={() => toggleModal("edit")}
-              />
-              <Button
-                text="Supprimer ton groupe"
-                isBold={true}
-                backgroundColor={Colors.primary900}
-                onPress={() => toggleModal("delete")}
-              />
-            </>
-          )}
-        </View>
-        {Object.values(showModal).includes(true) && (
-          <Modal
-            isVisible={true}
-            backdropColor="#111"
-            backdropOpacity={0.6}
-            onBackdropPress={() => toggleModal()}
-            hideModalContentWhileAnimating={true}
-          >
-            <View style={styles.modal}>
-              <View style={styles.closeIconContainer}>
-                <Text style={styles.modalText}>
-                  {showModal.edit
-                    ? "Modification du groupe"
-                    : "Suppression du groupe"}
-                </Text>
-                <IconButton
-                  icon="close"
-                  size={26}
-                  color="#111"
-                  onPress={() => toggleModal()}
-                />
-              </View>
-              {showModal.edit ? (
-                <ScrollView>
-                  <Text style={styles.label}>Nom du groupe</Text>
-                  <TextInput
-                    style={styles.input}
-                    onChangeText={(value) => handleInputChange("name", value)}
-                    value={inputsValues.name}
-                    returnKeyType="go"
-                  />
-                  <Text style={styles.label}>Description</Text>
-                  <TextInput
-                    style={styles.input}
-                    multiline={true}
-                    numberOfLines={8}
-                    onChangeText={(value) =>
-                      handleInputChange("description", value)
-                    }
-                    value={inputsValues.description}
-                    returnKeyType="go"
-                  />
-                  <Text style={styles.label}>Nombre total de participants</Text>
-                  <View style={styles.selectorsContainer}>
-                    <QuantitySelector
-                      sign="minus"
-                      onPress={() => handleInputChange("capacity", "subtract")}
+                {showModal.edit && (
+                  <ScrollView>
+                    <Text style={styles.label}>Nom du groupe</Text>
+                    <TextInput
+                      style={styles.input}
+                      onChangeText={(value) => handleInputChange("name", value)}
+                      value={inputsValues.name}
+                      returnKeyType="go"
                     />
-                    <Text style={styles.capacityText}>
-                      {inputsValues.capacity}
+                    <Text style={styles.label}>Description</Text>
+                    <TextInput
+                      style={styles.input}
+                      multiline={true}
+                      numberOfLines={8}
+                      onChangeText={(value) =>
+                        handleInputChange("description", value)
+                      }
+                      value={inputsValues.description}
+                      returnKeyType="go"
+                    />
+                    <Text style={styles.label}>
+                      Nombre total de participants
                     </Text>
-                    <QuantitySelector
-                      sign="plus"
-                      onPress={() => handleInputChange("capacity", "add")}
-                    />
-                  </View>
-                  <View>
-                    <Button text="Valider" onPress={handleSubmit} />
-                  </View>
-                </ScrollView>
-              ) : (
-                <>
-                  <Text style={styles.deleteText}>
-                    Es-tu sûr(e) de vouloir supprimer ton groupe ?
-                  </Text>
-                  <View style={styles.optionsContainer}>
-                    <View style={styles.optionButton}>
-                      <Button
-                        text="Oui"
-                        height={40}
-                        isBold={true}
-                        backgroundColor={Colors.primary900}
-                        onPress={deleteGroup}
+                    <View style={styles.selectorsContainer}>
+                      <QuantitySelector
+                        sign="minus"
+                        onPress={() =>
+                          handleInputChange("capacity", "subtract")
+                        }
+                      />
+                      <Text style={styles.capacityText}>
+                        {inputsValues.capacity}
+                      </Text>
+                      <QuantitySelector
+                        sign="plus"
+                        onPress={() => handleInputChange("capacity", "add")}
                       />
                     </View>
-                    <View style={styles.optionButton}>
-                      <Button
-                        text="Non"
-                        height={40}
-                        isBold={true}
-                        backgroundColor={Colors.primary700}
-                        onPress={() => toggleModal()}
-                      />
+                    <View>
+                      <Button text="Valider" onPress={handleSubmit} />
                     </View>
-                  </View>
-                </>
-              )}
-            </View>
-          </Modal>
-        )}
-      </ScrollView>
+                  </ScrollView>
+                )}
+                {showModal.delete && (
+                  <>
+                    <Text style={styles.deleteText}>
+                      Es-tu sûr(e) de vouloir supprimer ton groupe ?
+                    </Text>
+                    <View style={styles.optionsContainer}>
+                      <View style={styles.optionButton}>
+                        <Button
+                          text="Oui"
+                          height={40}
+                          isBold={true}
+                          backgroundColor={Colors.primary900}
+                          onPress={deleteGroup}
+                        />
+                      </View>
+                      <View style={styles.optionButton}>
+                        <Button
+                          text="Non"
+                          height={40}
+                          isBold={true}
+                          backgroundColor={Colors.primary700}
+                          onPress={() => toggleModal()}
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
+                {showModal.kick && (
+                  <>
+                    <Text style={styles.deleteText}>
+                      Es-tu sûr(e) de vouloir exclure {userToKick.username} de
+                      ton groupe ?
+                    </Text>
+                    <View style={styles.optionsContainer}>
+                      <View style={styles.optionButton}>
+                        <Button
+                          text="Oui"
+                          height={40}
+                          isBold={true}
+                          backgroundColor={Colors.primary900}
+                          onPress={() => kickUser(userToKick.id)}
+                        />
+                      </View>
+                      <View style={styles.optionButton}>
+                        <Button
+                          text="Non"
+                          height={40}
+                          isBold={true}
+                          backgroundColor={Colors.primary700}
+                          onPress={() => toggleModal()}
+                        />
+                      </View>
+                    </View>
+                  </>
+                )}
+              </View>
+            </Modal>
+          )}
+        </ScrollView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+  loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   groupPage: {
     flex: 1,
     paddingTop: 40,
