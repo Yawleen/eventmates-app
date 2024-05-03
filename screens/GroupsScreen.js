@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getValueFor } from "../helpers/secureStore";
 import { AUTH_TOKEN } from "../globals";
 import { requestOptions } from "../helpers/requestOptions";
@@ -99,7 +99,7 @@ export default function GroupsScreen({ route, navigation }) {
 
   const handleSubmit = () => {
     if (
-      !Object.values(groupCreationInfo).every((inputValue) => inputValue.trim() !== "")
+      !Object.values(groupCreationInfo).every((inputValue) => inputValue.toString().trim() !== "")
     ) {
       Alert.alert("Erreur", "Tous les champs doivent être remplis.");
       return;

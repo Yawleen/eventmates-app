@@ -109,7 +109,7 @@ export default function RegistrationScreen() {
   };
 
   const handleSubmit = () => {
-    if (!Object.values(formData).every((inputValue) => inputValue.trim() !== "")) {
+    if (!Object.values(formData).every((inputValue) => inputValue.toString().trim() !== "")) {
       Alert.alert("Erreur", "Tous les champs doivent être remplis.");
       return;
     }
