@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { getValueFor } from "../helpers/secureStore";
 import { AUTH_TOKEN } from "../globals";
 import { requestOptions } from "../helpers/requestOptions";

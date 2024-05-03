@@ -25,7 +25,7 @@ import QuantitySelector from "../components/QuantitySelector";
 import { ActivityIndicator } from "react-native-paper";
 
 export default function GroupScreen({ route, navigation }) {
-  const eventId = route.params.data;
+  const { eventId, groupId } = route.params.data;
   const [groupInfo, setGroupInfo] = useState({});
   const [isUserGroup, setIsUserGroup] = useState(false);
   const [showModal, setShowModal] = useState({
@@ -80,7 +80,7 @@ export default function GroupScreen({ route, navigation }) {
     }
   };
 
-  const fetchEventGroupInfo = async (eventId) => {
+  const fetchEventGroupInfo = async (eventGroupId) => {
     const token = await getValueFor(AUTH_TOKEN);
     const decodedToken = await jwt_decode(token);
 
@@ -89,7 +89,7 @@ export default function GroupScreen({ route, navigation }) {
 
       try {
         await fetch(
-          `${process.env.EXPO_PUBLIC_API_URL}/event-group?eventId=${eventId}`,
+          `${process.env.EXPO_PUBLIC_API_URL}/event-group?eventGroupId=${eventGroupId}`,
           requestOptions("GET", token)
         ).then((response) => {
           response.json().then((data) => {
@@ -235,15 +235,17 @@ export default function GroupScreen({ route, navigation }) {
   };
 
   useEffect(() => {
-    if (userToKick.username === "" || userToBan.username === "") {
-      fetchEventGroupInfo(eventId);
+    if (!userToKick.username || !userToBan.username) {
+      fetchEventGroupInfo(groupId);
     }
   }, [userToKick, userToBan]);
 
   useLayoutEffect(() => {
-    navigation.setOptions({
-      title: `Groupe ${groupUpdateInfo.name}`,
-    });
+    if(groupUpdateInfo.name) {
+      navigation.setOptions({
+        title: `Groupe ${groupUpdateInfo.name}`,
+      });
+    }
   }, [navigation, groupUpdateInfo.name]);
 
   return (
