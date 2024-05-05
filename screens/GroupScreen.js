@@ -2,7 +2,7 @@ import moment from "moment";
 import "moment/locale/fr";
 import Colors from "../globals/colors";
 import { AUTH_TOKEN, SCREEN_EVENT } from "../globals";
-import { useState, useLayoutEffect, useEffect } from "react";
+import { useState, useEffect } from "react";
 import jwt_decode from "jwt-decode";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
@@ -40,6 +40,7 @@ export default function GroupScreen({ route, navigation }) {
   const [userToBan, setUserToBan] = useState({ username: "", id: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [userInGroup, setUserInGroup] = useState(true);
+  const [userId, setUserId] = useState("");
 
   const redirectToEvent = () =>
     navigation.navigate(SCREEN_EVENT, { data: groupInfo?.event });
@@ -106,6 +107,7 @@ export default function GroupScreen({ route, navigation }) {
               description: data.groupInfo.description,
               capacity: data.groupInfo.maxCapacity,
             });
+            setUserId(decodedToken.userId);
             if (decodedToken.userId === data.groupInfo.creator._id) {
               setIsUserGroup(true);
               return;
@@ -268,8 +270,32 @@ export default function GroupScreen({ route, navigation }) {
         ).then((response) => {
           response.json().then((data) => {
             Alert.alert(data.message);
-            if(data.success) {
+            if (data.success) {
               setUserInGroup(true);
+            }
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+    }
+  };
+
+  const leaveGroup = async () => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      try {
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/leave-group`,
+          requestOptions("POST", token, {
+            eventGroupId: groupId,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            Alert.alert(data.message);
+            if (data.success) {
+              setUserInGroup(false);
             }
           });
         });
@@ -409,6 +435,15 @@ export default function GroupScreen({ route, navigation }) {
                 onPress={joinGroup}
               />
             )}
+            {!isUserGroup &&
+              groupInfo?.users?.map((user) => user._id).includes(userId) && (
+                <Button
+                  text="Quitter le groupe"
+                  isBold={true}
+                  backgroundColor={Colors.primary700}
+                  onPress={leaveGroup}
+                />
+              )}
           </View>
           {Object.values(showModal).includes(true) && (
             <Modal
