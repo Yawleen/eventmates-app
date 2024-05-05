@@ -25,20 +25,21 @@ import QuantitySelector from "../components/QuantitySelector";
 import { ActivityIndicator } from "react-native-paper";
 
 export default function GroupScreen({ route, navigation }) {
-  const { eventId, groupId } = route.params.data;
+  const { eventId, groupId } = route.params.data;
   const [groupInfo, setGroupInfo] = useState({});
   const [isUserGroup, setIsUserGroup] = useState(false);
   const [showModal, setShowModal] = useState({
     edit: false,
     delete: false,
     kick: false,
-    ban: false
+    ban: false,
   });
   const [inputsValues, setInputsValues] = useState({});
   const [groupUpdateInfo, setGroupUpdateInfo] = useState({});
   const [userToKick, setUserToKick] = useState({ username: "", id: "" });
   const [userToBan, setUserToBan] = useState({ username: "", id: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [userInGroup, setUserInGroup] = useState(true);
 
   const redirectToEvent = () =>
     navigation.navigate(SCREEN_EVENT, { data: groupInfo?.event });
@@ -234,19 +235,65 @@ export default function GroupScreen({ route, navigation }) {
     updateGroup(groupData);
   };
 
+  const isUserInAGroup = async (eventId) => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      setIsLoading(true);
+      try {
+        fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/is-user-in-group?eventId=${eventId}`,
+          requestOptions("GET", token)
+        ).then((response) =>
+          response.json().then((data) => setUserInGroup(data.isMember))
+        );
+      } catch {
+        setUserInGroup(false);
+      }
+      setIsLoading(false);
+    }
+  };
+
+  const joinGroup = async () => {
+    const token = await getValueFor(AUTH_TOKEN);
+
+    if (token) {
+      try {
+        await fetch(
+          `${process.env.EXPO_PUBLIC_API_URL}/join-group`,
+          requestOptions("POST", token, {
+            eventId: eventId,
+            eventGroupId: groupId,
+          })
+        ).then((response) => {
+          response.json().then((data) => {
+            Alert.alert(data.message);
+            if(data.success) {
+              setUserInGroup(true);
+            }
+          });
+        });
+      } catch (error) {
+        Alert.alert("Erreur", error.message);
+      }
+    }
+  };
+
   useEffect(() => {
-    if (!userToKick.username || !userToBan.username) {
+    isUserInAGroup(eventId);
+  }, []);
+
+  useEffect(() => {
+    if (!userToKick.username || !userToBan.username || userInGroup) {
       fetchEventGroupInfo(groupId);
     }
-  }, [userToKick, userToBan]);
+  }, [userToKick, userToBan, userInGroup]);
 
-  useLayoutEffect(() => {
-    if(groupUpdateInfo.name) {
-      navigation.setOptions({
-        title: `Groupe ${groupUpdateInfo.name}`,
-      });
-    }
-  }, [navigation, groupUpdateInfo.name]);
+  useEffect(() => {
+    navigation.setOptions({
+      title: groupUpdateInfo.name ? groupUpdateInfo.name : "",
+    });
+  }, [groupUpdateInfo.name]);
 
   return (
     <View style={styles.groupPage}>
@@ -329,7 +376,7 @@ export default function GroupScreen({ route, navigation }) {
                           toggleModal("ban");
                         }}
                       />
-                    </View>       
+                    </View>
                   </>
                 )}
               </View>
@@ -353,6 +400,14 @@ export default function GroupScreen({ route, navigation }) {
                   onPress={() => toggleModal("delete")}
                 />
               </>
+            )}
+            {!userInGroup && (
+              <Button
+                text="Rejoindre le groupe"
+                isBold={true}
+                backgroundColor={Colors.primary700}
+                onPress={joinGroup}
+              />
             )}
           </View>
           {Object.values(showModal).includes(true) && (
@@ -479,8 +534,8 @@ export default function GroupScreen({ route, navigation }) {
                 {showModal.ban && (
                   <>
                     <Text style={styles.deleteText}>
-                      Es-tu sûr(e) de vouloir bannir {userToBan.username} de
-                      ton groupe ?
+                      Es-tu sûr(e) de vouloir bannir {userToBan.username} de ton
+                      groupe ?
                     </Text>
                     <View style={styles.optionsContainer}>
                       <View style={styles.optionButton}>
