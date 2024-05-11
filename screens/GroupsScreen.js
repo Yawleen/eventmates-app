@@ -220,7 +220,7 @@ export default function GroupsScreen({ route, navigation }) {
                 <Text style={styles.nbOfGroupsBold}>
                   {groupsInfo.nbOfGroups}
                 </Text>{" "}
-                groupe(s) EventMates créé(s)
+                groupe(s) EventMates disponible(s)
               </Text>
             )}
             {!userInGroup && (
