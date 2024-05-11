@@ -83,7 +83,9 @@ export default function App() {
     signOut();
   };
 
-  const EventDetailScreen = () => <EventScreen isUserEvent={isUserEvent} setIsUserEvent={setIsUserEvent} />
+  const EventDetailScreen = () => (
+    <EventScreen isUserEvent={isUserEvent} setIsUserEvent={setIsUserEvent} />
+  );
 
   useEffect(() => {
     checkAuthentication();
@@ -176,13 +178,11 @@ export default function App() {
                               color="#fff"
                             />
                           </View> */}
-                          <View style={styles.headerIcon}>
-                            <ParticipateEventButton
-                              eventId={route.params.data._id}
-                              isUserEvent={isUserEvent}
-                              setIsUserEvent={setIsUserEvent}
-                            />
-                          </View>
+                          <ParticipateEventButton
+                            eventId={route.params.data._id}
+                            isUserEvent={isUserEvent}
+                            setIsUserEvent={setIsUserEvent}
+                          />
                         </View>
                       ),
                     })}
@@ -194,7 +194,7 @@ export default function App() {
                       headerBackTitleVisible: false,
                     })}
                   ></Stack.Screen>
-                    <Stack.Screen
+                  <Stack.Screen
                     name={SCREEN_GROUP}
                     component={GroupScreen}
                     options={() => ({
@@ -224,13 +224,5 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     columnGap: 8,
     marginRight: 12,
-  },
-  headerIcon: {
-    justifyContent: "center",
-    alignItems: "center",
-    width: 45,
-    height: 45,
-    borderRadius: 50,
-    backgroundColor: Colors.primary700,
   },
 });
