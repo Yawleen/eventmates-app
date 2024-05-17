@@ -62,7 +62,7 @@ function EventCard({ eventInfo }) {
             </Text>
           </View>
         </View>
-        <View style={styles.infoContainer}>
+        <View style={[styles.infoContainer, styles.priceInfo]}>
           <IconButton icon="ticket-confirmation-outline" size={19} color="#111" />
           <Text style={styles.price}>
             {eventInfo.priceRanges[0].min === eventInfo.priceRanges[0].max
@@ -72,6 +72,14 @@ function EventCard({ eventInfo }) {
                 )}€`}
           </Text>
         </View>
+        {eventInfo.createdGroupsTotal > 0 && (
+          <View style={styles.infoContainer}>
+            <IconButton icon="account-group-outline" size={19} color="#111" />
+            <Text style={styles.price}>
+              {eventInfo.createdGroupsTotal} groupe(s) créé(s)
+            </Text>
+          </View>
+        )}
         <View style={styles.buttonContainer}>
           <Button text="Voir plus" onPress={() => onPressFunction(eventInfo)} />
         </View>
@@ -178,6 +186,9 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     width: "25%",
     fontSize: 15,
+  },
+  priceInfo: {
+    marginBottom: 6
   },
   price: {
     fontSize: 15,

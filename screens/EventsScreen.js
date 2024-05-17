@@ -69,7 +69,7 @@ LocaleConfig.locales["fr"] = {
 
 LocaleConfig.defaultLocale = "fr";
 
-export default function EventsScreen() {
+export default function EventsScreen({ navigation }) {
   const flatList = useRef();
   const [eventsInfo, setEventsInfo] = useState({
     events: [],
@@ -257,12 +257,16 @@ export default function EventsScreen() {
   };
 
   useEffect(() => {
-    if (!eventsInfo.isLastPage) {
-      fetchEvents();
-    }
+    const fetch = navigation.addListener("focus", () => {
+      if (!eventsInfo.isLastPage) {
+        fetchEvents();
+      }
 
-    fetchGenres();
-  }, []);
+      fetchGenres();
+    });
+
+    return fetch;
+  }, [navigation]);
 
   return (
     <View style={styles.eventsPage}>
