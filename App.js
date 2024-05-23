@@ -3,6 +3,8 @@ import { useState, useMemo, useEffect } from "react";
 import { StatusBar } from "expo-status-bar";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   SCREEN_AUTHENTICATION,
   SCREEN_REGISTRATION,
@@ -13,6 +15,7 @@ import {
   SCREEN_EVENT,
   SCREEN_GROUPS,
   SCREEN_GROUP,
+  SCREEN_CHAT_GROUPS,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -30,8 +33,10 @@ import IconButton from "./components/IconButton";
 import ParticipateEventButton from "./components/ParticipateEventButton";
 import GroupsScreen from "./screens/GroupsScreen";
 import GroupScreen from "./screens/GroupScreen";
+import ChatGroupsScreen from "./screens/ChatGroupsScreen";
 
 const Stack = createStackNavigator();
+const Tab = createBottomTabNavigator();
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -85,6 +90,71 @@ export default function App() {
     <EventScreen isUserEvent={isUserEvent} setIsUserEvent={setIsUserEvent} />
   );
 
+  const EventsTabNavigator = () => (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarStyle: {
+          paddingTop: 5,
+        },
+      }}
+    >
+      <Tab.Screen
+        name={SCREEN_EVENTS}
+        component={EventsScreen}
+        options={{
+          headerRight: () => (
+            <LogOutButton
+              icon="logout"
+              size={24}
+              style={styles.logOutButton}
+              color="#111"
+              onPress={signOut}
+            />
+          ),
+          tabBarActiveTintColor: Colors.primary900,
+          tabBarInactiveTintColor: "#111",
+          tabBarIcon: ({ focused }) => (
+            <MaterialCommunityIcons
+              name="music"
+              size={26}
+              color={focused ? Colors.primary900 : "#111"}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+          },
+        }}
+      />
+      <Tab.Screen
+        name={SCREEN_CHAT_GROUPS}
+        component={ChatGroupsScreen}
+        options={{
+          headerRight: () => (
+            <LogOutButton
+              icon="logout"
+              size={24}
+              style={styles.logOutButton}
+              color="#111"
+              onPress={signOut}
+            />
+          ),
+          tabBarActiveTintColor: Colors.primary900,
+          tabBarInactiveTintColor: "#111",
+          tabBarIcon: ({ focused }) => (
+            <MaterialCommunityIcons
+              name="wechat"
+              size={30}
+              color={focused ? Colors.primary900 : "#111"}
+            />
+          ),
+          tabBarLabelStyle: {
+            fontSize: 12,
+          },
+        }}
+      />
+    </Tab.Navigator>
+  );
+
   useEffect(() => {
     checkAuthentication();
   }, []);
@@ -131,18 +201,8 @@ export default function App() {
                 <>
                   <Stack.Screen
                     name={SCREEN_EVENTS}
-                    component={EventsScreen}
-                    options={{
-                      headerRight: () => (
-                        <LogOutButton
-                          icon="logout"
-                          size={24}
-                          style={styles.logOutButton}
-                          color="#111"
-                          onPress={signOut}
-                        />
-                      ),
-                    }}
+                    component={EventsTabNavigator}
+                    options={{ headerShown: false }}
                   ></Stack.Screen>
                   <Stack.Screen
                     name={SCREEN_EVENT}
