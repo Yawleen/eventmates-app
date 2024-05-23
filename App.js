@@ -7,7 +7,6 @@ import {
   SCREEN_AUTHENTICATION,
   SCREEN_REGISTRATION,
   SCREEN_LOG_IN,
-  SCREEN_HOME,
   AUTH_TOKEN,
   SCREEN_RESET_PASSWORD,
   SCREEN_EVENTS,
@@ -23,7 +22,6 @@ import Colors from "./globals/colors";
 import AuthenticationScreen from "./screens/AuthenticationScreen";
 import RegistrationScreen from "./screens/RegistrationScreen";
 import LoginScreen from "./screens/LoginScreen";
-import HomeScreen from "./screens/HomeScreen";
 import LogOutButton from "./components/IconButton";
 import ResetPasswordScreen from "./screens/ResetPasswordScreen";
 import EventsScreen from "./screens/EventsScreen";
@@ -134,21 +132,6 @@ export default function App() {
                   <Stack.Screen
                     name={SCREEN_EVENTS}
                     component={EventsScreen}
-                    options={{
-                      headerRight: () => (
-                        <LogOutButton
-                          icon="logout"
-                          size={24}
-                          style={styles.logOutButton}
-                          color="#111"
-                          onPress={signOut}
-                        />
-                      ),
-                    }}
-                  ></Stack.Screen>
-                  <Stack.Screen
-                    name={SCREEN_HOME}
-                    component={HomeScreen}
                     options={{
                       headerRight: () => (
                         <LogOutButton
