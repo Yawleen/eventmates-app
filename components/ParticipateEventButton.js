@@ -1,5 +1,5 @@
 import { useLayoutEffect, useState } from "react";
-import { AUTH_TOKEN } from "../globals";
+import { AUTH_TOKEN, SCREEN_EVENTS } from "../globals";
 import { getValueFor } from "../helpers/secureStore";
 import { requestOptions } from "../helpers/requestOptions";
 import { useNavigation } from "@react-navigation/native";
@@ -59,6 +59,7 @@ export default function ParticipateEventButton({
           response.json().then((data) => {
             setIsUserEvent(false);
             toggleModal();
+            navigation.navigate(SCREEN_EVENTS);
             Alert.alert(data.message);
           });
         });
