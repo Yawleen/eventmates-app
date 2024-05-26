@@ -15,7 +15,7 @@ import {
   SCREEN_EVENT,
   SCREEN_GROUPS,
   SCREEN_GROUP,
-  SCREEN_CHAT_GROUPS,
+  SCREEN_GROUP_CHAT,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -33,7 +33,7 @@ import IconButton from "./components/IconButton";
 import ParticipateEventButton from "./components/ParticipateEventButton";
 import GroupsScreen from "./screens/GroupsScreen";
 import GroupScreen from "./screens/GroupScreen";
-import ChatGroupsScreen from "./screens/ChatGroupsScreen";
+import GroupChatScreen from "./screens/GroupChatScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -126,8 +126,8 @@ export default function App() {
         }}
       />
       <Tab.Screen
-        name={SCREEN_CHAT_GROUPS}
-        component={ChatGroupsScreen}
+        name={SCREEN_GROUP_CHAT}
+        component={GroupChatScreen}
         options={{
           headerRight: () => (
             <LogOutButton
