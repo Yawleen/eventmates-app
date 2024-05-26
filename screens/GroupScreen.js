@@ -1,7 +1,7 @@
 import moment from "moment";
 import "moment/locale/fr";
 import Colors from "../globals/colors";
-import { AUTH_TOKEN, SCREEN_EVENT } from "../globals";
+import { AUTH_TOKEN, SCREEN_EVENT, SCREEN_GROUP_CHAT } from "../globals";
 import { useState, useEffect } from "react";
 import jwt_decode from "jwt-decode";
 import { getValueFor } from "../helpers/secureStore";
@@ -272,6 +272,7 @@ export default function GroupScreen({ route, navigation }) {
             Alert.alert(data.message);
             if (data.success) {
               setUserInGroup(true);
+              navigation.navigate(SCREEN_GROUP_CHAT);
             }
           });
         });
@@ -326,7 +327,6 @@ export default function GroupScreen({ route, navigation }) {
       {isLoading ? (
         <View style={styles.loaderContainer}>
           <ActivityIndicator
-            style={styles.loader}
             size="large"
             color={Colors.primary900}
           />
