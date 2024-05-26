@@ -198,6 +198,7 @@ export default function GroupsScreen({ route, navigation }) {
   return (
     <View style={styles.groupsPage}>
       <FlatList
+        ref={flatList}
         data={groupsInfo.groups}
         renderItem={renderEventGroup}
         keyExtractor={setKeyExtractor}
