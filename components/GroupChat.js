@@ -1,4 +1,4 @@
-import { SCREEN_GROUP } from "../globals";
+import { SCREEN_CHAT_ROOM, SCREEN_GROUP } from "../globals";
 import Colors from "../globals/colors";
 import { useNavigation } from "@react-navigation/native";
 import { StyleSheet, Text, View, Image } from "react-native";
@@ -10,6 +10,11 @@ export default function GroupChat({ groupInfo }) {
   const redirectToGroup = () =>
     navigation.navigate(SCREEN_GROUP, {
       data: { groupId: groupInfo._id, eventId: groupInfo.event._id },
+    });
+
+  const redirectToChatRoom = () =>
+    navigation.navigate(SCREEN_CHAT_ROOM, {
+      data: { groupInfo: groupInfo },
     });
 
   return (
@@ -33,7 +38,7 @@ export default function GroupChat({ groupInfo }) {
             icon="wechat"
             size={30}
             color={Colors.primary900}
-            onPress={() => console.log("redirect to chat screen")}
+            onPress={redirectToChatRoom}
           />
         </View>
       </View>

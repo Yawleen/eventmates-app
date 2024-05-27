@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
     color: Colors.primary900,
   },
   groupTabText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: "openSansBold",
     textTransform: "uppercase",
     color: "#fff",

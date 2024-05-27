@@ -16,6 +16,7 @@ import {
   SCREEN_GROUPS,
   SCREEN_GROUP,
   SCREEN_GROUP_CHAT,
+  SCREEN_CHAT_ROOM,
 } from "./globals";
 import { getValueFor, deleteKey } from "./helpers/secureStore";
 import { requestOptions } from "./helpers/requestOptions";
@@ -34,6 +35,7 @@ import ParticipateEventButton from "./components/ParticipateEventButton";
 import GroupsScreen from "./screens/GroupsScreen";
 import GroupScreen from "./screens/GroupScreen";
 import GroupChatScreen from "./screens/GroupChatScreen";
+import ChatRoomScreen from "./screens/ChatRoomScreen";
 
 const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -200,7 +202,7 @@ export default function App() {
               ) : (
                 <>
                   <Stack.Screen
-                    name={SCREEN_EVENTS}
+                    name="Accueil"
                     component={EventsTabNavigator}
                     options={{ headerShown: false }}
                   ></Stack.Screen>
@@ -240,6 +242,13 @@ export default function App() {
                   <Stack.Screen
                     name={SCREEN_GROUP}
                     component={GroupScreen}
+                    options={() => ({
+                      headerBackTitleVisible: false,
+                    })}
+                  ></Stack.Screen>
+                  <Stack.Screen
+                    name={SCREEN_CHAT_ROOM}
+                    component={ChatRoomScreen}
                     options={() => ({
                       headerBackTitleVisible: false,
                     })}
