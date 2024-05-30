@@ -119,7 +119,6 @@ export default function ResetPasswordScreen() {
       <KeyboardAvoidingView
         {...(Platform.OS === IOS && { behavior: "position" })}
         style={styles.scrollViewContainer}
-        behavior="position"
       >
         <View>
           <Text style={styles.title}>Réinitialisation du mot de passe</Text>

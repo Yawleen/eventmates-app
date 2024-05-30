@@ -570,7 +570,7 @@ const styles = StyleSheet.create({
   },
   pageTextContainer: {
     position: "absolute",
-    bottom: 50,
+    bottom: 30,
     left: 0,
     borderRadius: 5,
     backgroundColor: Colors.primary900,
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
   topButton: {
     position: "absolute",
     right: 15,
-    bottom: 50,
+    bottom: 30,
     justifyContent: "center",
     alignItems: "center",
     width: 45,
