@@ -93,7 +93,7 @@ Construit l'application pour la production.
   ├── assets/         # Ressources comme les images, les polices, etc.
   ├── components/     # Composants React
   ├── context/        # Contexte de l'application
-  ├── globals/        #  Variables globales
+  ├── globals/        # Variables globales
   ├── helpers/        # Fonctions utiles et réutilisables dans toute l'application
   ├── screens/        # Écrans de l'application
   ├── App.js          # Point d'entrée principal
