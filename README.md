@@ -87,7 +87,7 @@ Construit l'application pour la production.
 
 ## Structure du projet
 
-<img src="assets/img/structure_projet.PNG" alt="structure projet" width="350"/>
+<img src="assets/img/structure_projet.PNG" alt="structure projet" width="450"/>
   
 ## Contact
 
