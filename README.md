@@ -7,9 +7,9 @@ EventMates est un réseau social qui propose des événements musicaux provenant
 
 ## Captures d'écran
 
-![Ecran principal](assets/img/main_screen_1.png =250x)
-![Ecran principal](assets/img/main_screen_2.png =250x)
-![Ecran principal](assets/img/main_screen_3.png =250x)
+![Ecran principal](assets/img/main_screen_1.png=250x)
+![Ecran principal](assets/img/main_screen_2.png=250x)
+![Ecran principal](assets/img/main_screen_3.png=250x)
 
 ## Fonctionnalités de la V1
 
