@@ -35,7 +35,6 @@ EventMates est un réseau social qui propose des événements musicaux provenant
 - Exclusion définitive d'un utilisateur du groupe (bannissement)
 - Rejoindre un groupe
 - Quitter un groupe
-- Afficher le nombre de groupes créés pour un événement sur la carte de l’événement
 - Affichage des groupes d’événement de l'utilisateur (groupes créés et rejoints)
 - Chat de groupe
 
