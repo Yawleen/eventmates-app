@@ -1,7 +1,9 @@
 # Nom de l'application
+
 EventMates
 
 # Description
+
 EventMates est un réseau social qui propose des événements musicaux provenant de l’API Discovery de Ticketmaster et qui permet de créer ou rejoindre des groupes autour de ces événements. Les événements musicaux proposés sont des concerts de différents genres qui ont lieu en France. Le but principal de cette application est de mettre en relation les personnes qui souhaitent trouver un ou plusieurs compagnons pour assister à des événements musicaux en commun. 
 
 
