@@ -76,13 +76,13 @@ EventMates est un réseau social qui propose des événements musicaux provenant
 
 Dans le répertoire du projet, vous pouvez exécuter les scripts suivants :
 
-`npm run start`
+`expo start`
 Lance le serveur de développement Expo.
 
-`npm run android`
+`expo start --android`
 Lance l'application sur un appareil Android ou un émulateur Android.
 
-`npm run ios`
+`expo start --ios`
 Lance l'application dans le simulateur iOS.
 
 ## Structure du projet
