@@ -7,7 +7,7 @@ EventMates est un réseau social qui propose des événements musicaux provenant
 
 ## Captures d'écran
 
-<img src="assets/img/main_screen_1.png" alt="drawing" width="220"/> <img src="assets/img/main_screen_2.png" alt="drawing" width="220"/> <img src="assets/img/main_screen_3.png" alt="drawing" width="220"/>
+<img src="assets/img/main_screen_1.png" alt="écran principal" width="220"/> <img src="assets/img/main_screen_2.png" alt="écran principal" width="220"/> <img src="assets/img/main_screen_3.png" alt="écran principal" width="220"/>
 
 
 ## Fonctionnalités de la V1
@@ -87,16 +87,7 @@ Construit l'application pour la production.
 
 ## Structure du projet
 
-/eventmates-app
-   assets/         # Ressources comme les images, les polices, etc.
-   components/     # Composants React
-   context/        # Contexte de l'application
-   globals/        # Variables globales
-   helpers/        # Fonctions utiles et réutilisables dans toute l'application
-   screens/        # Écrans de l'application
-   App.js          # Point d'entrée principal
-   app.json        # Configuration de l'application Expo
-   package.json  
+<img src="https://ibb.co/fM3sZLc" alt="structure projet" width="350"/>
   
 ## Contact
 
