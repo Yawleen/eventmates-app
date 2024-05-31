@@ -297,6 +297,7 @@ export default function GroupScreen({ route, navigation }) {
             Alert.alert(data.message);
             if (data.success) {
               setUserInGroup(false);
+              navigation.goBack();
             }
           });
         });

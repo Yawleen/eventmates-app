@@ -125,13 +125,14 @@ export default function GroupChatScreen({ navigation, route }) {
     fetchJoinedGroups();
   };
 
-  const handleLoadMoreCreatedGroups = () => {
-    if (!createdGroupChat.isLastPage && !isCreatedLoading) {
-      fetchCreatedGroups(createdGroupChat.groups, createdGroupChat.page);
+  const handleLoadMore = () => {
+    if (createdGroups) {
+      if (!createdGroupChat.isLastPage && !isCreatedLoading) {
+        fetchCreatedGroups(createdGroupChat.groups, createdGroupChat.page);
+      }
+      return;
     }
-  };
 
-  const handleLoadMoreJoinedGroups = () => {
     if (!joinedGroupChat.isLastPage && !isJoinedLoading) {
       fetchJoinedGroups(joinedGroupChat.groups, joinedGroupChat.page);
     }
@@ -141,12 +142,14 @@ export default function GroupChatScreen({ navigation, route }) {
     const fetch = navigation.addListener("focus", () => {
       if (route?.params?.joinedGroupsTab) {
         setCreatedGroups(false);
+        if (!joinedGroupChat.isLastPage) {
+          fetchJoinedGroups();
+        }
       } else {
         setCreatedGroups(true);
-      }
-
-      if (!createdGroupChat.isLastPage) {
-        fetchCreatedGroups();
+        if (!createdGroupChat.isLastPage) {
+          fetchCreatedGroups();
+        }
       }
     });
 
@@ -193,69 +196,46 @@ export default function GroupChatScreen({ navigation, route }) {
           </Text>
         </Pressable>
       </View>
-      {isCreatedLoading || isJoinedLoading ? (
-        <View style={styles.loaderContainer}>
-          <ActivityIndicator size="large" color={Colors.primary900} />
-        </View>
-      ) : createdGroups ? (
-        <>
-          <FlatList
-            ref={flatListOne}
-            contentContainerStyle={styles.list}
-            data={createdGroupChat.groups}
-            renderItem={renderGroupChat}
-            keyExtractor={setKeyExtractor}
-            onEndReached={handleLoadMoreCreatedGroups}
-            onEndReachedThreshold={0.1}
-            {...(isCreatedLoading &&
-              !createdGroupChat.isLastPage && {
-                ListFooterComponent: () => (
-                  <ActivityIndicator size="large" color={Colors.primary600} />
-                ),
-              })}
-            ItemSeparatorComponent={<View style={styles.separator}></View>}
-          />
-          <>
-            <Pressable style={styles.topButton} onPress={onPressFunction}>
-              <IconButton icon="chevron-up" size={26} color="#fff" />
-            </Pressable>
-            <View style={styles.pageTextContainer}>
-              <Text style={styles.pageText}>
-                {createdGroupChat.groups.length} / {createdGroupChat.nbOfGroups}
-              </Text>
-            </View>
-          </>
-        </>
-      ) : (
-        <>
-          <FlatList
-            ref={flatListTwo}
-            contentContainerStyle={styles.list}
-            data={joinedGroupChat.groups}
-            renderItem={renderGroupChat}
-            keyExtractor={setKeyExtractor}
-            onEndReached={handleLoadMoreJoinedGroups}
-            onEndReachedThreshold={0.1}
-            {...(isJoinedLoading &&
+      <>
+        <FlatList
+          ref={createdGroups ? flatListOne : flatListTwo}
+          contentContainerStyle={styles.list}
+          data={
+            createdGroups ? createdGroupChat.groups : joinedGroupChat.groups
+          }
+          renderItem={renderGroupChat}
+          keyExtractor={setKeyExtractor}
+          onEndReached={handleLoadMore}
+          onEndReachedThreshold={0.1}
+          {...((isCreatedLoading && !createdGroupChat.isLastPage) ||
+            (isJoinedLoading &&
               !joinedGroupChat.isLastPage && {
                 ListFooterComponent: () => (
-                  <ActivityIndicator size="large" color={Colors.primary600} />
+                  <ActivityIndicator
+                    size="large"
+                    style={styles.loader}
+                    color={Colors.primary600}
+                  />
                 ),
-              })}
-            ItemSeparatorComponent={<View style={styles.separator}></View>}
-          />
-          <>
-            <Pressable style={styles.topButton} onPress={onPressFunction}>
-              <IconButton icon="chevron-up" size={26} color="#fff" />
-            </Pressable>
-            <View style={styles.pageTextContainer}>
-              <Text style={styles.pageText}>
-                {joinedGroupChat.groups.length} / {joinedGroupChat.nbOfGroups}
-              </Text>
-            </View>
-          </>
-        </>
-      )}
+              }))}
+          ItemSeparatorComponent={<View style={styles.separator}></View>}
+        />
+
+        <Pressable style={styles.topButton} onPress={onPressFunction}>
+          <IconButton icon="chevron-up" size={26} color="#fff" />
+        </Pressable>
+        <View style={styles.pageTextContainer}>
+          <Text style={styles.pageText}>
+            {createdGroups
+              ? createdGroupChat.groups.length
+              : joinedGroupChat.groups.length}{" "}
+            /{" "}
+            {createdGroups
+              ? createdGroupChat.nbOfGroups
+              : joinedGroupChat.nbOfGroups}
+          </Text>
+        </View>
+      </>
     </View>
   );
 }
@@ -294,6 +274,9 @@ const styles = StyleSheet.create({
   },
   groupTabTextSelected: {
     color: Colors.primary900,
+  },
+  loader: {
+    marginVertical: 20,
   },
   separator: {
     height: 20,
