@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { getValueFor } from "../helpers/secureStore";
-import { AUTH_TOKEN } from "../globals";
+import { AUTH_TOKEN, SCREEN_GROUP_CHAT } from "../globals";
 import { requestOptions } from "../helpers/requestOptions";
 import Colors from "../globals/colors";
 import { MIN_PARTICIPANTS, MAX_PARTICIPANTS } from "../globals";
@@ -82,12 +82,7 @@ export default function GroupsScreen({ route, navigation }) {
             setUserInGroup(data.success);
             setShowModal(false);
             Alert.alert(data.message);
-            setGroupsInfo({
-              groups: [],
-              nbOfGroups: 0,
-              page: 1,
-              isLastPage: false,
-            });
+            navigation.navigate(SCREEN_GROUP_CHAT);
           });
         });
       } catch (error) {
@@ -99,7 +94,9 @@ export default function GroupsScreen({ route, navigation }) {
 
   const handleSubmit = () => {
     if (
-      !Object.values(groupCreationInfo).every((inputValue) => inputValue.toString().trim() !== "")
+      !Object.values(groupCreationInfo).every(
+        (inputValue) => inputValue.toString().trim() !== ""
+      )
     ) {
       Alert.alert("Erreur", "Tous les champs doivent être remplis.");
       return;

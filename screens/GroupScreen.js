@@ -272,7 +272,7 @@ export default function GroupScreen({ route, navigation }) {
             Alert.alert(data.message);
             if (data.success) {
               setUserInGroup(true);
-              navigation.navigate(SCREEN_GROUP_CHAT);
+              navigation.navigate(SCREEN_GROUP_CHAT, { joinedGroupsTab: true });
             }
           });
         });
@@ -326,10 +326,7 @@ export default function GroupScreen({ route, navigation }) {
     <View style={styles.groupPage}>
       {isLoading ? (
         <View style={styles.loaderContainer}>
-          <ActivityIndicator
-            size="large"
-            color={Colors.primary900}
-          />
+          <ActivityIndicator size="large" color={Colors.primary900} />
         </View>
       ) : (
         <ScrollView>

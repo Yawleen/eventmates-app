@@ -9,7 +9,7 @@ import { FlatList } from "react-native-gesture-handler";
 import GroupChat from "../components/GroupChat";
 import { requestOptions } from "../helpers/requestOptions";
 
-export default function GroupChatScreen({ navigation }) {
+export default function GroupChatScreen({ navigation, route }) {
   const flatListOne = useRef();
   const flatListTwo = useRef();
   const [createdGroups, setCreatedGroups] = useState();
@@ -139,7 +139,11 @@ export default function GroupChatScreen({ navigation }) {
 
   useEffect(() => {
     const fetch = navigation.addListener("focus", () => {
-      setCreatedGroups(true);
+      if (route?.params?.joinedGroupsTab) {
+        setCreatedGroups(false);
+      } else {
+        setCreatedGroups(true);
+      }
 
       if (!createdGroupChat.isLastPage) {
         fetchCreatedGroups();
