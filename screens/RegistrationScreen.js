@@ -114,22 +114,6 @@ export default function RegistrationScreen() {
       return;
     }
 
-    if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ]{2,}$/.test(formData.firstName)) {
-      Alert.alert(
-        "Erreur",
-        "Le prénom doit contenir au moins 2 caractères alphabétiques."
-      );
-      return;
-    }
-
-    if (!/^[a-zA-ZÀ-ÖØ-öø-ÿ]{2,}$/.test(formData.lastName)) {
-      Alert.alert(
-        "Erreur",
-        "Le nom de famille doit contenir au moins 2 caractères alphabétiques."
-      );
-      return;
-    }
-
     if (!validator.isEmail(formData.email)) {
       Alert.alert("Erreur", "L'adresse mail saisie est invalide.");
       return;
